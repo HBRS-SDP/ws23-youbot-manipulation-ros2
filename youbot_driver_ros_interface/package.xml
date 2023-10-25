@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>youbot_driver_ros_interface</name>
+  <description>ROS wrapper for the youBot driver</description>
+  <author>Sebastian Blumenthal</author>
+  <maintainer email="nowak@locomotec.com">Walter Nowak</maintainer>
+  <license>LGPL, BSD</license>
+  <version>1.1.1</version>
+  <url>http://www.youbot-store.com</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>brics_actuator</depend>
+  <depend>control_msgs</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>youbot_driver</depend>
+  <depend>tf2_geometry_msgs</depend>
+
+  <exec_depend>rclpy</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>
+
+
+
