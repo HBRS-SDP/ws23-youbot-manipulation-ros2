@@ -7,36 +7,46 @@
 
 using namespace youbot;
 // add your path
-std::string ethercat_config_path = "/home/chaitanya/workspace_sdp/src/youbot_driver/config";
+std::string ethercat_config_path = "./config";
 
-//Function to check the input joint angle is within the range or not
+// Function to convert input angles from degress into radians
+
+//Function to check the input joint angles is within the range or not
+
+// Funtion to convert joint angles convention to youbot driver convention
+
+// Function to convert youbot driver convention to joint angles convention
+
+// Funtion which takes input angles and move the robot to given configuration of joint angles
+
 bool isinRange(double value, double minimum, double maximum){
     return (value >= minimum) && (value <= maximum);
 }
 
 int main(int argc, char **argv) {
-    EthercatMaster::getInstance("youbot-ethercat.cfg", ethercat_config_path, true);
-    YouBotManipulator myArm("youbot-manipulator", ethercat_config_path);
-    myArm.doJointCommutation();
-    myArm.calibrateManipulator();
+    // EthercatMaster::getInstance("youbot-ethercat.cfg", ethercat_config_path, true);
+    // YouBotManipulator myArm("youbot-manipulator", ethercat_config_path);
+    // myArm.doJointCommutation();=
+    // myArm.calibrateManipulator();
     double minimum_angles[] = {-2.94961, -1.13446, -2.63545, -1.78896248, -2.879793};
     double maximum_angles[] = {2.94961, 1.5708, 2.54818, 1.78896248, 2.87979};
-
+    // double q_offsets[] = {2.94961, 1.5708, 2.54818, 1.78896248, 2.87979};
+    
     double q_offsets[5];
     q_offsets[0] = (169.0 * M_PI) / 180.0;
-    q_offsets[1] = 65.0 * M_PI / 180.0;
-    q_offsets[2] = -151.0 * M_PI / 180.0;
-    q_offsets[3] = 102.5 * M_PI / 180.0;
-    q_offsets[4] = 65.0 * M_PI / 180.0;
+    q_offsets[1] = (65.0 * M_PI) / 180.0;
+    q_offsets[2] = (-151.0 * M_PI) / 180.0;
+    q_offsets[3] = (102.5 * M_PI) / 180.0;
+    q_offsets[4] = (65.0 * M_PI) / 180.0;
     
 
     std::vector<JointAngleSetpoint> inputAngles;
     std::vector<JointSensedAngle> sensedAngles;
     
-    myArm.getJointData(sensedAngles);
-    for (int i = 0; i < 5; i++) {
-        std::cout << sensedAngles[i].angle.value() - q_offsets[i] << std::endl;
-    }
+    // myArm.getJointData(sensedAngles);
+    // for (int i = 0; i < 5; i++) {
+    //     std::cout << sensedAngles[i].angle.value() - q_offsets[i] << std::endl;
+    // }
     
 
 
@@ -58,7 +68,7 @@ int main(int argc, char **argv) {
         }
     }
     std::cout << "Moving robot to the desired joint angles" << std::endl;
-    myArm.setJointData(inputAngles);
+    //myArm.setJointData(inputAngles);
     sleep(5);
     return 0;
 }
