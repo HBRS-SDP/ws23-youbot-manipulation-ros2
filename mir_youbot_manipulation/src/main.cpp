@@ -15,7 +15,19 @@ std::string ethercat_config_path = "./config";
 
 // Funtion to convert joint angles convention to youbot driver convention
 
+convertJointAnglesToYouBotConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
+    for i in range(len(inputAngles)) {
+        outputAngles[i] = inputAngles[i] - q_offsets[i];
+    }
+}
+
 // Function to convert youbot driver convention to joint angles convention
+
+convertJointAnglesToJointConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
+    for i in range(len(inputAngles)) {
+        outputAngles[i] = inputAngles[i] + q_offsets[i];
+    }
+}
 
 // Funtion which takes input angles and move the robot to given configuration of joint angles
 
