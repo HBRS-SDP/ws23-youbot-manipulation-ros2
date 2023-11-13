@@ -58,9 +58,16 @@ vector<JointAngleSetpoint> convert_double_to_joint_angle_setpoint(std::vector<do
 
 // Funtion to convert joint angles convention to youbot driver convention
 
-double convertJointAnglesToYouBotConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
+vector<double> convertJointAnglesToYouBotConvention(vector<double> inputAngles) {
 
-    int len = sizeof(inputAngles) / sizeof(inputAngles[0]);
+    
+
+    int len = inputAngles.size();
+
+    vector<double> outputAngles[len];
+
+    std::cout<<"Length of input angles: "<<len<<std::endl;
+
 
     for(int i = 0; i < len; i++) {
         outputAngles[i] = inputAngles[i] - q_offsets[i];
@@ -68,19 +75,19 @@ double convertJointAnglesToYouBotConvention(double *inputAngles, double *outputA
         
     } 
 
-    return *outputAngles;  
-}
+    return outputAngles;  
+    }
 
 // Function to convert youbot driver convention to joint angles convention
 
-double convertJointAnglesToJointConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
+vector<double> convertJointAnglesToJointConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
 
-    int len = sizeof(inputAngles) / sizeof(inputAngles[0]);
-    for(int i = 0; i < len; i++) {
-        outputAngles[i] = inputAngles[i] + q_offsets[i];
-    }
 
-    return *outputAngles;
+    // for(int i = 0; i <  inputAngles.size(); i++) {
+    //     outputAngles[i] = inputAngles[i] + q_offsets[i];
+    // }
+
+    // return *outputAngles;
 }
 
 // Funtion which takes input angles and move the robot to given configuration of joint angles
