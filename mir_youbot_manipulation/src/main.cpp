@@ -10,6 +10,18 @@ using namespace youbot;
 std::string ethercat_config_path = "./config";
 
 // Function to convert input angles from degress into radians
+vector<double> convert_deg_to_rad(vector<double> deg_angles) {
+    /*
+    Converts degrees to radians.
+    input: degrees in vector<double> as a list of angles
+    output: radians in vector<double> stored in a list
+    */
+    vector<double> rad_angles;
+    for (int i = 0; i < deg_angles.size(); i++) {
+        rad_angles.push_back(deg_angles[i] * M_PI / 180.0);
+    }
+    return rad_angles;
+}
 
 //Function to check the input joint angles is within the range or not
 
