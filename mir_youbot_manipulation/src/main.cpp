@@ -27,13 +27,13 @@ bool validate_input(std::vector<double> joint_angles) {
         std::cout << "Error: Input vector size does not match expected size" << std::endl;
         return false;    
     }
-    for (int i = 0; i < joint_angles.size(); i++) {
+    for (int i = 0; i < joint_angles.size(); i ++) {
         if (joint_angles[i] < minimum_angles[i] || joint_angles[i] > maximum_angles[i]) {
-            std::cout << "Joint angle " << i + 1 << " is out of range" << std::endl;
-            return false;
+            std::cout << "Joint angle " << i + 1<< " is out of range" << std::endl;
+            return false
         }
     }
-    return true;
+    return true
 }
 
 // Funtion to convert joint angles convention to youbot driver convention
@@ -45,21 +45,6 @@ bool validate_input(std::vector<double> joint_angles) {
 
 
 int main(int argc, char **argv) {
-    std::vector<double> test_vector;
-
-    std::cout << "Enter joint angles : ";
-    double angle;
-    for (int i = 0; i < 5; i ++) {
-        std::cin >> angle;
-        test_vector.push_back(angle);
-    }
-
-    if (validate_input(test_vector)) {
-        std::cout << "Vector is valid" << std::endl;
-    } else {
-        std::cout << "Vector is invalid" << std::endl;
-    }
-
     // EthercatMaster::getInstance("youbot-ethercat.cfg", ethercat_config_path, true);
     // YouBotManipulator myArm("youbot-manipulator", ethercat_config_path);
     // myArm.doJointCommutation();=
@@ -82,6 +67,9 @@ int main(int argc, char **argv) {
     // // for (int i = 0; i < 5; i++) {
     // //     std::cout << sensedAngles[i].angle.value() - q_offsets[i] << std::endl;
     // // }
+    
+
+
     // std::cout << "Enter joint angles(in radians)" << std::endl;
 
     // for (int i=0; i < 5; i++) {
