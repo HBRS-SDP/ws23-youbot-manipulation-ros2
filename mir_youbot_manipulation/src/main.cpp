@@ -39,13 +39,21 @@ bool validate_input(std::vector<double> joint_angles) {
         std::cout << "Error: Input vector size does not match expected size" << std::endl;
         return false;    
     }
-    for (int i = 0; i < joint_angles.size(); i ++) {
+    for (int i = 0; i < joint_angles.size(); i++) {
         if (joint_angles[i] < minimum_angles[i] || joint_angles[i] > maximum_angles[i]) {
             std::cout << "Joint angle " << i + 1<< " is out of range" << std::endl;
-            return false
+            return false;
         }
     }
-    return true
+    return true;
+}
+// Function to convert double values to joint angle set points type
+vector<JointAngleSetpoint> convert_double_to_joint_angle_setpoint(std::vector<double> joint_angles) {
+    std::vector<JointAngleSetpoint> result;
+    for (int i = 0; i < joint_angles.size(); i++) {
+        
+
+    }
 }
 
 // Funtion to convert joint angles convention to youbot driver convention
@@ -56,6 +64,7 @@ double convertJointAnglesToYouBotConvention(double *inputAngles, double *outputA
 
     for(int i = 0; i < len; i++) {
         outputAngles[i] = inputAngles[i] - q_offsets[i];
+
         
     } 
 
@@ -79,6 +88,18 @@ double convertJointAnglesToJointConvention(double *inputAngles, double *outputAn
 
 
 int main(int argc, char **argv) {
+    // Test vector of double values
+    std::vector<double> test_double_angles = {1.0, 2.5, 3.8, 4.2, 5.5};
+
+    // Convert double values to JointAngleSetpoint
+    std::vector<JointAngleSetpoint> joint_angle_setpoints = convert_double_to_joint_angle_setpoint(test_double_angles);
+
+    // Display the converted setpoints
+    for (int i = 0; i < joint_angle_setpoints.size(); ++i) {
+        std::cout << "Setpoint " << i + 1 << ": " << joint_angle_setpoints[i].angle << std::endl;
+    }
+
+    return 0;
     // EthercatMaster::getInstance("youbot-ethercat.cfg", ethercat_config_path, true);
     // YouBotManipulator myArm("youbot-manipulator", ethercat_config_path);
     // myArm.doJointCommutation();=
