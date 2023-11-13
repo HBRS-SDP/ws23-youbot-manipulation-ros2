@@ -51,23 +51,19 @@ bool validate_input(std::vector<double> joint_angles) {
 vector<JointAngleSetpoint> convert_double_to_joint_angle_setpoint(std::vector<double> joint_angles) {
     std::vector<JointAngleSetpoint> result;
     for (int i = 0; i < joint_angles.size(); i++) {
-        
-
+        double joint_angle = joint_angles[i];
+        JointAngleSetpoint input_angle;
+        input_angle.angle = joint_angle * radian;
+        result.push_back(input_angle);
     }
+    return result;
 }
 
 // Funtion to convert joint angles convention to youbot driver convention
 
-vector<double> convertJointAnglesToYouBotConvention(vector<double> inputAngles) {
+double convertJointAnglesToYouBotConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
 
-    
-
-    int len = inputAngles.size();
-
-    vector<double> outputAngles[len];
-
-    std::cout<<"Length of input angles: "<<len<<std::endl;
-
+    int len = sizeof(inputAngles) / sizeof(inputAngles[0]);
 
     for(int i = 0; i < len; i++) {
         outputAngles[i] = inputAngles[i] - q_offsets[i];
@@ -75,19 +71,19 @@ vector<double> convertJointAnglesToYouBotConvention(vector<double> inputAngles) 
         
     } 
 
-    return outputAngles;  
-    }
+    return *outputAngles;  
+}
 
 // Function to convert youbot driver convention to joint angles convention
 
-vector<double> convertJointAnglesToJointConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
+double convertJointAnglesToJointConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
 
+    int len = sizeof(inputAngles) / sizeof(inputAngles[0]);
+    for(int i = 0; i < len; i++) {
+        outputAngles[i] = inputAngles[i] + q_offsets[i];
+    }
 
-    // for(int i = 0; i <  inputAngles.size(); i++) {
-    //     outputAngles[i] = inputAngles[i] + q_offsets[i];
-    // }
-
-    // return *outputAngles;
+    return *outputAngles;
 }
 
 // Funtion which takes input angles and move the robot to given configuration of joint angles
@@ -95,18 +91,7 @@ vector<double> convertJointAnglesToJointConvention(double *inputAngles, double *
 
 
 int main(int argc, char **argv) {
-    // Test vector of double values
-    std::vector<double> test_double_angles = {1.0, 2.5, 3.8, 4.2, 5.5};
-
-    // Convert double values to JointAngleSetpoint
-    std::vector<JointAngleSetpoint> joint_angle_setpoints = convert_double_to_joint_angle_setpoint(test_double_angles);
-
-    // Display the converted setpoints
-    for (int i = 0; i < joint_angle_setpoints.size(); ++i) {
-        std::cout << "Setpoint " << i + 1 << ": " << joint_angle_setpoints[i].angle << std::endl;
-    }
-
-    return 0;
+    
     // EthercatMaster::getInstance("youbot-ethercat.cfg", ethercat_config_path, true);
     // YouBotManipulator myArm("youbot-manipulator", ethercat_config_path);
     // myArm.doJointCommutation();=
