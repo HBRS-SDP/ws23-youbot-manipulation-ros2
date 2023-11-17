@@ -61,7 +61,7 @@ vector<JointAngleSetpoint> convert_double_to_joint_angle_setpoint(std::vector<do
 
 // Funtion to convert joint angles convention to youbot driver convention
 
-double convertJointAnglesToYouBotConvention(double *inputAngles, double *outputAngles, double *q_offsets) {
+vector<JointAngleSetpoint> convertJointAnglesToYouBotConvention() {
 
     int len = sizeof(inputAngles) / sizeof(inputAngles[0]);
 
