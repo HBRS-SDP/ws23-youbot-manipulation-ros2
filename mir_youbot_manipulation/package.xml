@@ -4,15 +4,13 @@
   <name>mir_youbot_manipulation</name>
   <version>0.0.0</version>
   <description>Controls the youbot arm</description>
+  <maintainer email="mohsen.azizmalayeri@smail.inf.h-brs.de">Mohsen azizmalayeri</maintainer>
   <maintainer email="chaitanyagumudala961@gmail.com">Chaitanya</maintainer>
   <license>Mozilla</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-
-
   <depend>rclcpp</depend>
-
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>std_msgs</depend>

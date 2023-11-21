@@ -27,30 +27,30 @@ namespace manipulation_namespace{
 			  * \param[in] joint_angles_deg in double as a list of angles in degrees
 			  * \param[out] bool indicating the movement is done or not
 			  */
-			bool moveJointArms(vector<double> joint_angles_deg);
-			
-		private:
-		
+			bool moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg)
+
 			/**
 			  * \brief Converts vector double values to joint angle set points data type
 			  * \param[in] vector<double> as a list of angles in youbot convention
 			  * \param[out] vector<JointAngleSetpoint>
 			  */
-			vector<JointAngleSetpoint> convertDoubleToJointAngleSetpoint(vector<double> youbot_driver_joint_angles);
+			vector<JointAngleSetpoint> convertDoubleToJointAngleSetpoint(const std::vector<double> &input_angle);
+			
+		private:
 			
 			/**
 			  * \brief Converts degrees to radians
 			  * \param[in] vector<double> as a list of angles in degree
 			  * \param[out] vector<double> 
 			  */
-			vector<double> convertDegToRad(vector<double> joint_angles_deg);
+			vector<JointAngleSetpoint> convertDegToRad(const std::vector<JointAngleSetpoint> &joint_angles_deg);
 			
 			/**
 			  * \brief Checks whether input angles are in the range of youBot's physical configuration or not
 			  * \param[in] vector<double> as a list of angles in radian
 			  * \param[out] true or false
 			  */
-			bool validateInput(vector<double> joint_angles_rad);
+			bool validateInput(const std::vector<JointAngleSetpoint> &joint_angles_rad);
 			
 			/**
 			  * \brief Adds compensation angles to the input angles
@@ -58,6 +58,6 @@ namespace manipulation_namespace{
 			  * \param[in] vector<double> as a list of angles to compensate in radian
 			  * \param[out] vector<JointAngleSetpoint>
 			  */
-			vector<double> convertJointAnglesToYoubotDriverConvention(vector<double> joint_angles_rad, vector<double> compensate_angles);
+			vector<JointAngleSetpoint> convertJointAnglesToYoubotDriverConvention(const std::vector<JointAngleSetpoint> &joint_angles_rad, const std::vector<JointAngleSetpoint> &compensate_angles);
 	};
 }

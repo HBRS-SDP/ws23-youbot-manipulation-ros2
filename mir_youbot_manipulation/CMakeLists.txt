@@ -26,7 +26,7 @@ include_directories(
 )
 
 add_executable(youbot_manipulation
-    src/main.cpp
+    src/youbot_manipulation.cpp
     )
     
     ament_target_dependencies(youbot_manipulation 

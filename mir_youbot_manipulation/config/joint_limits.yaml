@@ -1,22 +1,32 @@
 mir_youbot_manipulation:
-  joint_angles:
-    - joint_angle: 1 
-      min: -2.94961
-      max: 2.94961
+  - joint_limits:
+    convention: youbot_store
+    type: rad
+    - joints:
+      - joint_1:
+        min: -2.94961
+        max: 2.94961
+      - joint_2:
+        min: -1.13446
+        max: 1.5708
+      - joint_3:
+        min: -2.63545
+        max: 2.54818
+      - joint_4:
+        min: -1.78896
+        max: 1.78896
+      - joint_5:
+        min: -2.87979
+        max: 2.87979
+  - joint_compensations:
+    type: rad
+    - joint_1:
       compensate: 2.94960
-    - joint_angle: 2
-      min: -1.13446
-      max: 1.5708
+    - joint_2:
       compensate: 1.13446
-    - joint_angle: 3 
-      min: -2.63545
-      max: 2.54818
+    - joint_3:
       compensate: -2.63544
-    - joint_angle: 4
-      min: -1.78896
-      max: 1.78896
+    - joint_4:
       compensate: 1.78896
-    - joint_angle: 5 
-      min: -2.87979
-      max: 2.87979
+    - joint_5:
       compensate: 1.13446
