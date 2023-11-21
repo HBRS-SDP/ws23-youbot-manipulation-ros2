@@ -35,6 +35,7 @@ add_executable(youbot_manipulation
     geometry_msgs
     youbot_driver
     yaml_cpp_vendor
+    ament_index_cpp
     )
     target_link_libraries(youbot_manipulation 
       ${Boost_LIBRARIES}
@@ -45,6 +46,11 @@ add_executable(youbot_manipulation
 install(
   DIRECTORY include/ 
   DESTINATION include/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY config/ 
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 install(
