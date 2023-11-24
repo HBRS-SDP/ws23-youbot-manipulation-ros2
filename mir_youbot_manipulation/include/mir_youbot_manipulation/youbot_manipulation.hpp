@@ -27,7 +27,7 @@ namespace manipulation_namespace{
 			  * \param[in] joint_angles_deg in double as a list of angles in degrees
 			  * \param[out] bool indicating the movement is done or not
 			  */
-			bool moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg)
+			bool moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg);
 
 			/**
 			  * \brief Converts vector double values to joint angle set points data type
