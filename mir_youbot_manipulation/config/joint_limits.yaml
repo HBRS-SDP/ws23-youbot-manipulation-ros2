@@ -19,6 +19,7 @@ mir_youbot_manipulation:
             min: -2.87979
             max: 2.87979
   - joint_compensations:
+      convention: youbot_driver
       type: rad
       joints:
         - joint_1:
