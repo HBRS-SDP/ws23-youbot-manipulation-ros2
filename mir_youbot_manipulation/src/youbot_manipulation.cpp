@@ -149,21 +149,21 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
 }
 
 
-int main(int argc, char **argv)
-{
-    auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver");
-    string file_path = ethercat_path + "/config";
-    std::cout << file_path << std::endl;
-    vector<double> input_angles;
-    for (int i = 0; i < 5; i++)
-    {
-        double angle;
-        std::cout << "Enter joint " << i + 1 << " angle : ";
-        std::cin >> angle;
-        input_angles.push_back(angle);
-    }
-    Manipulator myYouBotManipulator = Manipulator(file_path);
-    vector<JointAngleSetpoint> joint_angles = myYouBotManipulator.convertDoubleToJointAngleSetpoint(input_angles);
-    myYouBotManipulator.moveArmJoints(joint_angles);
-    return 0;
-}
+// int main(int argc, char **argv)
+// {
+//     auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver");
+//     string file_path = ethercat_path + "/config";
+//     std::cout << file_path << std::endl;
+//     vector<double> input_angles;
+//     for (int i = 0; i < 5; i++)
+//     {
+//         double angle;
+//         std::cout << "Enter joint " << i + 1 << " angle : ";
+//         std::cin >> angle;
+//         input_angles.push_back(angle);
+//     }
+//     Manipulator myYouBotManipulator = Manipulator(file_path);
+//     vector<JointAngleSetpoint> joint_angles = myYouBotManipulator.convertDoubleToJointAngleSetpoint(input_angles);
+//     myYouBotManipulator.moveArmJoints(joint_angles);
+//     return 0;
+// }

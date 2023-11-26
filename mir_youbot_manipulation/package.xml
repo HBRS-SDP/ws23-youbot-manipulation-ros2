@@ -17,6 +17,8 @@
   <depend>geometry_msgs</depend>
   <depend>youbot_driver</depend>
   <depend>ament_index_cpp</depend>
+  <depend>brics_actuator</depend>
+
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -1,9 +1,9 @@
 /*
- * Copyright 2023 Bonn-Rhein-Sieg University
- *
- * ROS2 authors: Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
- *
- */
+* Copyright 2023 Bonn-Rhein-Sieg University
+*
+* ROS2 authors: Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
+*
+*/
  
 #include <iostream> 
 #include <vector>
