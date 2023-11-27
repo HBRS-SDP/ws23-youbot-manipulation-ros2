@@ -32,6 +32,7 @@ add_executable(youbot_manipulation
     
     ament_target_dependencies(youbot_manipulation 
     rclcpp
+    rclcpp_lifecycle
     std_msgs 
     geometry_msgs
     youbot_driver
