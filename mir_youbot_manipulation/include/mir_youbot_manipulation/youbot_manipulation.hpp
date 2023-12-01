@@ -41,6 +41,7 @@ namespace manipulation_namespace{
     		vector<JointAngleSetpoint> maximum_angles;
 			vector<JointAngleSetpoint> compensate_angles;
 			YouBotManipulator myArm;
+			std::string ethercat_path;
 
 
 			void readYAML();

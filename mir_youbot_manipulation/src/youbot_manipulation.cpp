@@ -103,7 +103,7 @@ void Manipulator::convertJointAnglesToYoubotDriverConvention(const std::vector<J
 }
 
 vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(const std::vector<double> &input_angle)
-    {
+{
         vector<JointAngleSetpoint> youbot_angles_set_point;
         for (int i = 0; i < input_angle.size(); i++)
         {
@@ -112,7 +112,7 @@ vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(const 
             youbot_angles_set_point.push_back(youbot_angle_set_point);
         }
         return youbot_angles_set_point;
-    }
+}
 
 bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg)
 {

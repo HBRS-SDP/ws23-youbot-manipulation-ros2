@@ -18,6 +18,7 @@
   <depend>youbot_driver</depend>
   <depend>ament_index_cpp</depend>
   <depend>brics_actuator</depend>
+  <depend>mir_interfaces</depend>
 
 
   <export>

@@ -9,6 +9,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "brics_actuator/msg/joint_positions.hpp"
+#include "rclcpp_action/rclcpp_action.hpp"
+#include "mir_interfaces/action/move_to_joint_angles.hpp"
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 
 
@@ -33,4 +35,30 @@ class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
   
  		/// Transition callback for state shutting down 
  		rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state);
+		
+	private:
+		// ============================ Members ============================
+		std::shared_ptr<manipulation_namespace::Manipulator> youbot_manipulator;
+	
+		// manipulator action server
+		rclcpp_action::Server<mir_interfaces::action::MoveToJointAngles>::SharedPtr joint_positions_action_server;
+
+		// action server callbacks
+		rclcpp_action::GoalResponse manipulatorHandleCallback(
+			const rclcpp_action::GoalUUID& uuid,
+			std::shared_ptr<const mir_interfaces::action::MoveToJointAngles::Goal> goal);
+
+		rclcpp_action::CancelResponse manipulatorSelectorCancelCallback(
+			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+			mir_interfaces::action::MoveToJointAngles>> goal_handle);
+
+		void manipulatorAcceptedCallback(
+			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+			mir_interfaces::action::MoveToJointAngles>> goal_handle);
+
+
+		// ============================ Methods ============================
+		void executeManipulator(
+			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+			mir_interfaces::action::MoveToJointAngles>> goal_handle);
 };
