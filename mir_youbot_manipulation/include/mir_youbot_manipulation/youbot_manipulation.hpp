@@ -15,19 +15,42 @@
 #include "youbot_driver/youbot/EthercatMasterWithThread.hpp"
 #include "youbot_driver/youbot/YouBotManipulator.hpp"
 #include "youbot_driver/youbot/DataTrace.hpp"
- 
+#include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/frames_io.hpp>
+#include <kdl/chainiksolvervel_pinv.hpp>
+#include <kdl/tree.hpp>
+
+
 using namespace youbot;
 
 namespace manipulation_namespace{
 	class Manipulator{
 		public:			
 			Manipulator(const std::string &file_path);
+
 			/**
 			  * \brief Moves youBot arm according to the input angles 
 			  * \param[in] joint_angles_deg in double as a list of angles in degrees
 			  * \param[out] bool indicating the movement is done or not
 			  */
 			bool moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg);
+
+			/**
+			  * \brief Perform inverse kinematic
+			  * \param[in] target_pose position to move arm joints
+			  * \param[in] chain a chain from arm_link_0 to arm_link_5
+			  * \param[out] joint_angles a list of joint angles to be executed on youBot arm
+			  */
+			bool inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return);
+
+			/**
+			  * \brief Perform forward kinematic
+			  * \param[in] joint_angles a list of joint angles to be executed on youBot arm
+			  * \param[in] chain a chain from arm_link_0 to arm_link_5
+			  * \param[out] target_pose position to move arm joints
+			  */
+			bool forwardKinematics(const KDL::JntArray& joint_angles, const KDL::Chain& chain, KDL::Frame& target_pose);
 
 			/**
 			  * \brief Converts vector double values to joint angle set points data type
@@ -42,7 +65,6 @@ namespace manipulation_namespace{
 			vector<JointAngleSetpoint> compensate_angles;
 			YouBotManipulator myArm;
 			std::string ethercat_path;
-
 
 			void readYAML();
 

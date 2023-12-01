@@ -9,7 +9,6 @@
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 
 using namespace youbot;
-
 using namespace manipulation_namespace;
 
 Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator", file_path)
@@ -18,7 +17,6 @@ Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator
     myArm.doJointCommutation();
     myArm.calibrateManipulator();
     readYAML();
-    
 }
 
 void Manipulator::readYAML() 
@@ -104,6 +102,7 @@ void Manipulator::convertJointAnglesToYoubotDriverConvention(const std::vector<J
 
 vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(const std::vector<double> &input_angle)
 {
+<<<<<<< HEAD
         vector<JointAngleSetpoint> youbot_angles_set_point;
         for (int i = 0; i < input_angle.size(); i++)
         {
@@ -112,6 +111,16 @@ vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(const 
             youbot_angles_set_point.push_back(youbot_angle_set_point);
         }
         return youbot_angles_set_point;
+=======
+    vector<JointAngleSetpoint> youbot_angles_set_point;
+    for (int i = 0; i < input_angle.size(); i++)
+    {
+        JointAngleSetpoint youbot_angle_set_point;
+        youbot_angle_set_point.angle = input_angle[i] * radian;
+        youbot_angles_set_point.push_back(youbot_angle_set_point);
+    }
+    return youbot_angles_set_point;
+>>>>>>> 3b44bcb (added IK and FK functions)
 }
 
 bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg)
@@ -149,9 +158,57 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     return false;
 }
 
+bool Manipulator::inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return) 
+{
+    // Create FK and IK solvers
+    double eps = 1e-6;
+    int max_iter = 100;
+    KDL::ChainFkSolverPos_recursive fk_solver(chain);
+    KDL::ChainIkSolverVel_pinv ik_solver_vel(chain, eps, max_iter);
+    KDL::ChainIkSolverPos_NR ik_solver(chain, fk_solver, ik_solver_vel, max_iter, eps);
+    // Set up joint angles
+    KDL::JntArray joint_angles(chain.getNrOfJoints());
+    joint_angles.data.setZero();
+    // Set up input and output
+    KDL::JntArray joint_angles_out(chain.getNrOfJoints());
+    // Perform inverse kinematics
+    int ik_result = ik_solver.CartToJnt(joint_angles, target_pose, joint_angles_out);
+    if (ik_result < 0) {
+        std::cerr << "Inverse Kinematics failed. Result: " << ik_result << std::endl;
+        return false;
+    }
+    // Print resulting joint angles
+    std::cout << "Joint angles (rad): " << joint_angles_out.data.transpose() << std::endl;
+    // Assign resulting joint angles to the output parameter
+    joint_angles_return = joint_angles_out;
+    return true;
+}
 
-// int main(int argc, char **argv)
-// {
+bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL::Chain& chain, KDL::Frame& target_pose) 
+{
+    // Check if the number of joint angles matches the chain's number of joints
+    if (joint_angles.rows() != chain.getNrOfJoints()) {
+        std::cerr << "Error: Number of joint angles does not match the chain's number of joints." << std::endl;
+        return false;
+    }
+    // Create a forward kinematics solver
+    KDL::ChainFkSolverPos_recursive fk_solver(chain);
+    // Set up the input joint positions
+    KDL::JntArray joint_positions(chain.getNrOfJoints());
+    joint_positions.data = joint_angles.data;
+    // Calculate the forward kinematics
+    int fk_result = fk_solver.JntToCart(joint_positions, target_pose);
+    if (fk_result < 0) {
+        std::cerr << "Forward Kinematics failed. Result: " << fk_result << std::endl;
+        return false;
+    }
+    // Print the resulting target pose
+    std::cout << "Target Pose:\n" << target_pose << std::endl;
+    return true;
+}
+
+//int main(int argc, char **argv)
+//{
 //     auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver");
 //     string file_path = ethercat_path + "/config";
 //     std::cout << file_path << std::endl;
@@ -167,4 +224,4 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
 //     vector<JointAngleSetpoint> joint_angles = myYouBotManipulator.convertDoubleToJointAngleSetpoint(input_angles);
 //     myYouBotManipulator.moveArmJoints(joint_angles);
 //     return 0;
-// }
+//}
