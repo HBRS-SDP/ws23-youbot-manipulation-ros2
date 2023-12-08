@@ -15,7 +15,12 @@
 #include "youbot_driver/youbot/EthercatMasterWithThread.hpp"
 #include "youbot_driver/youbot/YouBotManipulator.hpp"
 #include "youbot_driver/youbot/DataTrace.hpp"
- 
+#include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/frames_io.hpp>
+#include <kdl/chainiksolvervel_pinv.hpp>
+#include <kdl/tree.hpp>
+
 using namespace youbot;
 
 namespace manipulation_namespace{
