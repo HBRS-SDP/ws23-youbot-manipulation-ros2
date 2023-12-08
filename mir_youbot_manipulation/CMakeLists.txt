@@ -17,6 +17,7 @@ find_package(std_msgs REQUIRED)
 find_package(mir_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(youbot_driver)
+find_package(mir_hardware_config REQUIRED)
 find_package(yaml-cpp)
 find_package(brics_actuator)
 find_package(kdl_parser)
@@ -44,6 +45,7 @@ add_executable(youbot_manipulation
     brics_actuator
     mir_interfaces
     kdl_parser
+    mir_hardware_config
     )
     target_link_libraries(youbot_manipulation 
       ${Boost_LIBRARIES}
@@ -63,7 +65,10 @@ install(
   DIRECTORY config/ 
   DESTINATION share/${PROJECT_NAME}/config
 )
-
+install(
+  DIRECTORY launch/ 
+  DESTINATION share/${PROJECT_NAME}/launch
+)
 install(
   TARGETS youbot_manipulation
 #   EXPORT ${PROJECT_NAME}

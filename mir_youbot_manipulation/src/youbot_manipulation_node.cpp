@@ -10,6 +10,7 @@
 ManipulatorRosNode::ManipulatorRosNode(const rclcpp::NodeOptions& options) : rclcpp_lifecycle::LifecycleNode("youbot_manipulation_node", options)
 {
     RCLCPP_INFO(get_logger(), "Manipulator Node is created");
+    this->declare_parameter("robot_description", " ");
     auto overrides = this->get_node_options().parameter_overrides();
     for (auto& override : overrides) {
         declare_parameter(override.get_name(), override.get_parameter_value());
@@ -28,13 +29,18 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Manipu
     // manipulation_namespace::Manipulator manipulator(ethercat_path);
     youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
     KDL::Tree youbot_tree;
-    auto youbot_urdf_path = ament_index_cpp::get_package_share_directory("youbot_description") + "/urdf/youbot_arm/arm_corrected_dynamics.urdf.xacro";
-    if (!kdl_parser::treeFromFile(youbot_urdf_path, youbot_tree)) {
-            RCLCPP_ERROR(this->get_logger(), "Failed to parse URDF file");
-    }
     KDL::Chain youbot_kdl_chain;
-    if (!youbot_tree.getChain("arm_link_0", "arm_link_5", youbot_kdl_chain)) {
-            RCLCPP_ERROR(this->get_logger(), "Failed to create KDL chain");
+    
+    std::string robot_description = this->get_parameter("robot_description").as_string();
+    if (!kdl_parser::treeFromString(robot_description, youbot_tree))
+    {
+        RCLCPP_INFO(get_logger(), "Unable to get parameters");
+        return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
+    }
+    if (!youbot_tree.getChain("arm_link_0", "arm_link_5", youbot_kdl_chain))
+    {
+        RCLCPP_INFO(get_logger(), "Unable to get chain");
+        return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
     }
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 
@@ -134,8 +140,8 @@ void ManipulatorRosNode::executeManipulator(const std::shared_ptr<rclcpp_action:
     std::vector<double> joint_positions;
     for (const auto& joint_position : joint_positions_setpoint.positions) {
         double value = joint_position.value;
-        if (joint_position.unit == "deg") {
-            value = value * M_PI / 180.0;
+        if (joint_position.unit == "rad") {
+            value = value * 180.0/ M_PI ;
         }
         joint_positions.push_back(value);
 
@@ -174,6 +180,8 @@ void ManipulatorRosNode::executeCartesianPose(const std::shared_ptr<rclcpp_actio
     RCLCPP_INFO(get_logger(), "Manipulator Node executing object selector goal");
     const auto goal = goal_handle -> get_goal();
     mir_interfaces::action::CartesianCoordinates::Goal moveArmPoseGoal;
+    const auto&  cartesian_coordinates = goal->cartesian_coordinates;
+    
 }
 
 
