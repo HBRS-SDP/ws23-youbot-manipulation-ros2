@@ -48,10 +48,14 @@ add_executable(youbot_manipulation
     ament_index_cpp
     brics_actuator
 <<<<<<< HEAD
+<<<<<<< HEAD
     mir_interfaces
 =======
     orocos_kdl
 >>>>>>> 3b44bcb (added IK and FK functions)
+=======
+    orocos_kdl
+>>>>>>> 152c02c6bed9c3b0d772a6cdc08794625c618e42
     kdl_parser
     )
     target_link_libraries(youbot_manipulation 

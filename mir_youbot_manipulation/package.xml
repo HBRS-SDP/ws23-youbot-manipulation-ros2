@@ -19,12 +19,16 @@
   <depend>ament_index_cpp</depend>
   <depend>brics_actuator</depend>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <depend>mir_interfaces</depend>
   <depend>kdl_parser</depend>
 
 =======
   <depend>orocos_kdl</depend>
 >>>>>>> 53e28bb (updates in package and gitignore)
+=======
+  <depend>orocos_kdl</depend>
+>>>>>>> 152c02c6bed9c3b0d772a6cdc08794625c618e42
 
   <export>
     <build_type>ament_cmake</build_type>
