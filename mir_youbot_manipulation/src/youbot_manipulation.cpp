@@ -11,6 +11,16 @@
 using namespace youbot;
 using namespace manipulation_namespace;
 
+
+
+rclcpp::Logger Manipulator::get_logger() const
+{
+
+ return rclcpp::get_logger("YoubotManipulation");
+
+}
+
+
 Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator", file_path)
 {
     EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
@@ -195,21 +205,121 @@ bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL
     return true;
 }
 
-//int main(int argc, char **argv)
-//{
-//     auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver");
-//     string file_path = ethercat_path + "/config";
-//     std::cout << file_path << std::endl;
-//     vector<double> input_angles;
-//     for (int i = 0; i < 5; i++)
-//     {
-//         double angle;
-//         std::cout << "Enter joint " << i + 1 << " angle : ";
-//         std::cin >> angle;
-//         input_angles.push_back(angle);
-//     }
-//     Manipulator myYouBotManipulator = Manipulator(file_path);
-//     vector<JointAngleSetpoint> joint_angles = myYouBotManipulator.convertDoubleToJointAngleSetpoint(input_angles);
-//     myYouBotManipulator.moveArmJoints(joint_angles);
-//     return 0;
-//}
+int main(int argc, char **argv)
+{
+    auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver");
+    string file_path = ethercat_path + "/config";
+    std::cout << file_path << std::endl;
+
+    vector<double> input_angles;
+    for (int i = 0; i < 5; i++)
+    {
+        double angle;
+        input_angles.push_back(0);
+    }
+    Manipulator myYouBotManipulator = Manipulator(file_path);
+
+    vector<JointAngleSetpoint> joint_angles = myYouBotManipulator.convertDoubleToJointAngleSetpoint(input_angles);
+    myYouBotManipulator.moveArmJoints(joint_angles);
+
+    // // Path to the URDF file
+
+    // std::string urdf_file = "youbot.urdf";
+
+
+    // // Create a KDL tree object
+    // KDL::Tree kdl_tree;
+
+    // // Parse the URDF file and populate the KDL tree
+    // if (!kdl_parser::treeFromFile(urdf_file, kdl_tree)) {
+    //     std::cerr << "Failed to parse URDF file: " << urdf_file << std::endl;
+    //     return -1;
+    // }
+
+
+    KDL::Tree youbot_tree;
+    auto youbot_urdf_path = ament_index_cpp::get_package_share_directory("youbot_description") + "/urdf/youbot_arm/arm_corrected_dynamics.urdf.xacro";
+    if (!kdl_parser::treeFromFile(youbot_urdf_path, youbot_tree)) {
+            std::cerr << "Failed to parse URDF file: " << youbot_urdf_path << std::endl;
+    }
+    KDL::Chain youbot_kdl_chain;
+    if (!youbot_tree.getChain("arm_link_0", "arm_link_5", youbot_kdl_chain)) {
+            std::cerr << "Failed to create chain!! " << std::endl;
+    }
+
+    // Root segment of the KDL tree
+
+    // KDL::Segment root_segment = kdl_tree.getRootSegment();
+
+    // youbot_kdl_chain.addSegment(root_segment);
+
+    // size_t NUM_SEGMENTS = root_segment.getNumSegments();
+
+    // std::cout << "Number of segments: " << NUM_SEGMENTS << std::endl;
+
+    // Add more segments to the chain
+    // for (int i = 0; i < NUM_SEGMENTS ; i++) {
+
+    //     KDL::Segment current_segment = root_segment.children[i];
+
+    //     chain.addSegment(current_segment);
+
+    // }
+    // Perform forward kinematics
+
+
+
+    KDL::Frame target_pose;
+
+    // converting joint_angles to KDL::JntArray
+
+    KDL::JntArray joint_angles_kdl(youbot_kdl_chain.getNrOfJoints());
+
+    for (int i = 0; i < joint_angles.size(); i++) {
+
+        joint_angles_kdl(i) = joint_angles[i].angle.value();
+
+    }
+
+    if (!myYouBotManipulator.forwardKinematics(joint_angles_kdl, youbot_kdl_chain, target_pose)) {
+
+        std::cerr << "Forward Kinematics failed." << std::endl;
+
+        return 1;
+
+    }
+
+    // print target pose
+
+    std::cout << "Target Pose:\n" << target_pose << std::endl;
+
+
+    // Perform inverse kinematics
+
+    // KDL::JntArray joint_angles_return(chain.getNrOfJoints());
+
+    // creating joint_angles_return
+
+    KDL::JntArray joint_angles_return(youbot_kdl_chain.getNrOfJoints());
+
+    if (!myYouBotManipulator.inverseKinematics(target_pose, youbot_kdl_chain, joint_angles_return)) {
+
+        std::cerr << "Inverse Kinematics failed." << std::endl;
+
+        return 1;
+
+    }
+
+
+    // Print resulting joint angles
+
+    std::cout << "Joint angles (rad): " << joint_angles_return.data.transpose() << std::endl;
+
+
+
+    return 0;
+}
+
+
+
+

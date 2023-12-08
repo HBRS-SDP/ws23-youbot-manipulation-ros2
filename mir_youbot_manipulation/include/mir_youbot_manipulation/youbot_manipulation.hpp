@@ -20,14 +20,33 @@
 #include <kdl/frames_io.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/tree.hpp>
+#include "kdl_parser/kdl_parser.hpp"
+#include "kdl/chain.hpp"
+#include "kdl/frames.hpp"
+#include "kdl/chainiksolvervel_pinv.hpp"
+#include "kdl/frames_io.hpp"
+#include "kdl/jntarray.hpp"
+#include "kdl/jntarrayvel.hpp"
+#include "kdl/chainiksolvervel_pinv.hpp"
+#include "kdl/chainiksolverpos_nr.hpp"
+#include "rclcpp/rclcpp.hpp"
+
 
 
 using namespace youbot;
 
 namespace manipulation_namespace{
 	class Manipulator{
-		public:			
+		public:
+
+			rclcpp::Logger get_logger() const;
+			/**
+			  * \brief Constructor
+			  * \param[in] file_path as a string
+			  */
+
 			Manipulator(const std::string &file_path);
+
 
 			/**
 			  * \brief Moves youBot arm according to the input angles 
