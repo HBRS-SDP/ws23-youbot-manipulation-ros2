@@ -15,16 +15,19 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(youbot_driver)
+find_package(yaml-cpp)
+find_package(brics_actuator)
 find_package(Boost REQUIRED COMPONENTS thread date_time filesystem system regex)
 
 
 include_directories(
   include ${Boost_INCLUDE_DIR}
-  
+
 )
 
 add_executable(youbot_manipulation
-    src/main.cpp
+    src/youbot_manipulation.cpp
+    src/youbot_manipulation_node.cpp
     )
     
     ament_target_dependencies(youbot_manipulation 
@@ -32,16 +35,26 @@ add_executable(youbot_manipulation
     std_msgs 
     geometry_msgs
     youbot_driver
+    ament_index_cpp
+    brics_actuator
     )
     target_link_libraries(youbot_manipulation 
       ${Boost_LIBRARIES}
       ${youbot_driver_LIBRARIES}
+      ${brics_actuator_LIBRARIES}
+      yaml-cpp
+      
     )
 
 
 install(
   DIRECTORY include/ 
   DESTINATION include/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY config/ 
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 install(
