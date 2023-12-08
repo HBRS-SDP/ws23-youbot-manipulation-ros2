@@ -7,21 +7,21 @@ ROS2 authors: Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalaye
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration, Command, FindExecutable
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command, FindExecutable
 from launch_ros.actions import Node
 from launch_ros.descriptions import ParameterValue
-from launch.conditions import IfCondition, UnlessCondition
 import os
 
 
-def generate_description():
+def generate_launch_description():
 
-    youbot_model_xacro = os.path.join(
-        get_package_share_directory("youbot_description"), "urdf", "youbot_arm", "arm_corrected_dynamics.urdf.xacro"
-    )
-    robot_description_config = Command([FindExecutable(name="xacro"), '', youbot_model_xacro])
+    robot_name = 'youbot-brsu-2'
+
+    # planning_context
+    youbot_model_xacro = os.path.join(get_package_share_directory('mir_hardware_config'), robot_name, 'urdf','robot.urdf.xacro')
+
+    
+    robot_description_config = Command([FindExecutable(name='xacro'),' ', youbot_model_xacro])
     robot_description = {'robot_description': ParameterValue(robot_description_config, value_type=str)}
 
     robot_state_publisher = Node(
@@ -29,6 +29,15 @@ def generate_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='both',
-        parameters=[robot_description],
+        parameters=[robot_description]
     )
-    return LaunchDescription([robot_state_publisher])
+
+    youbot_node = Node(
+        package='mir_youbot_manipulation',
+        executable='youbot_manipulation',
+        name='youbot_manipulation_node',
+        output='both',
+        parameters=[robot_description]
+    )
+
+    return LaunchDescription([robot_state_publisher, youbot_node])

@@ -20,6 +20,7 @@
   <depend>brics_actuator</depend>
   <depend>mir_interfaces</depend>
   <depend>kdl_parser</depend>
+  <depend>mir_hardware_config</depend>
 
 
   <export>
