@@ -5,8 +5,8 @@
 
 ## ROS2 based youBot-arm manipulation using C++
 Developing codebase in C++ for implementing these tasks:
-1. Move the arm to given joint angles using youBot [1] driver interface.
-2. Move the arm to a given pose either by performing IK.
+1. Move the arm to given joint angles using youBot driver interface.
+2. Move the arm to a given pose by performing Inverse Kinematics using KDL library.
 3. Move the arm to a given pose by velocity control.
 4. Move the arm to a given pose using the Popov-Vereshchagin Hybrid Dynamics solver 
 interface from KDL.
@@ -19,5 +19,5 @@ interface from KDL.
 - Libraries: youbot_driver, KDL
 
 
-### Setup
-Please refer the detailed steps provided to setup the environment for the project in the Wiki page - [here](https://github.com/HBRS-SDP/ws23-youbot-manipulation-ros2/wiki)
+### Setup and Usage of customized Package
+Please refer the detailed steps provided to setup the environment and use it for the project in the Wiki page - [here](https://github.com/HBRS-SDP/ws23-youbot-manipulation-ros2/wiki)
