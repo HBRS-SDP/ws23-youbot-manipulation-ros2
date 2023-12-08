@@ -35,6 +35,22 @@ namespace manipulation_namespace{
 			  * \param[out] vector<JointAngleSetpoint>
 			  */
     		vector<JointAngleSetpoint> convertDoubleToJointAngleSetpoint(const std::vector<double> &input_angle);
+
+			/**
+			  * \brief Perform inverse kinematic
+			  * \param[in] target_pose position to move arm joints
+			  * \param[in] chain a chain from arm_link_0 to arm_link_5
+			  * \param[out] joint_angles a list of joint angles to be executed on youBot arm
+			  */
+			bool inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return);
+
+			/**
+			  * \brief Perform forward kinematic
+			  * \param[in] joint_angles a list of joint angles to be executed on youBot arm
+			  * \param[in] chain a chain from arm_link_0 to arm_link_5
+			  * \param[out] target_pose position to move arm joints
+			  */
+			bool forwardKinematics(const KDL::JntArray& joint_angles, const KDL::Chain& chain, KDL::Frame& target_pose);
 			
 		private:
 			vector<JointAngleSetpoint> minimum_angles;

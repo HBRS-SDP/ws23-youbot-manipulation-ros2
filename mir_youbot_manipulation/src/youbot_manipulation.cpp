@@ -1,10 +1,10 @@
 
 /*
- * Copyright 2023 Bonn-Rhein-Sieg University
- *
- * ROS2 Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
- *
- */
+* Copyright 2023 Bonn-Rhein-Sieg University
+*
+* ROS2 Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
+*
+*/
 
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 
@@ -149,6 +149,55 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     return false;
 }
 
+
+bool Manipulator::inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return) 
+{
+    // Create FK and IK solvers
+    double eps = 1e-6;
+    int max_iter = 100;
+    KDL::ChainFkSolverPos_recursive fk_solver(chain);
+    KDL::ChainIkSolverVel_pinv ik_solver_vel(chain, eps, max_iter);
+    KDL::ChainIkSolverPos_NR ik_solver(chain, fk_solver, ik_solver_vel, max_iter, eps);
+    // Set up joint angles
+    KDL::JntArray joint_angles(chain.getNrOfJoints());
+    joint_angles.data.setZero();
+    // Set up input and output
+    KDL::JntArray joint_angles_out(chain.getNrOfJoints());
+    // Perform inverse kinematics
+    int ik_result = ik_solver.CartToJnt(joint_angles, target_pose, joint_angles_out);
+    if (ik_result < 0) {
+        std::cerr << "Inverse Kinematics failed. Result: " << ik_result << std::endl;
+        return false;
+    }
+    // Print resulting joint angles
+    std::cout << "Joint angles (rad): " << joint_angles_out.data.transpose() << std::endl;
+    // Assign resulting joint angles to the output parameter
+    joint_angles_return = joint_angles_out;
+    return true;
+}
+
+bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL::Chain& chain, KDL::Frame& target_pose) 
+{
+    // Check if the number of joint angles matches the chain's number of joints
+    if (joint_angles.rows() != chain.getNrOfJoints()) {
+        std::cerr << "Error: Number of joint angles does not match the chain's number of joints." << std::endl;
+        return false;
+    }
+    // Create a forward kinematics solver
+    KDL::ChainFkSolverPos_recursive fk_solver(chain);
+    // Set up the input joint positions
+    KDL::JntArray joint_positions(chain.getNrOfJoints());
+    joint_positions.data = joint_angles.data;
+    // Calculate the forward kinematics
+    int fk_result = fk_solver.JntToCart(joint_positions, target_pose);
+    if (fk_result < 0) {
+        std::cerr << "Forward Kinematics failed. Result: " << fk_result << std::endl;
+        return false;
+    }
+    // Print the resulting target pose
+    std::cout << "Target Pose:\n" << target_pose << std::endl;
+    return true;
+}
 
 // int main(int argc, char **argv)
 // {
