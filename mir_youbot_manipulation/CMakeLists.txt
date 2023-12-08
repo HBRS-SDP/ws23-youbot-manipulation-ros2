@@ -19,6 +19,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(youbot_driver)
 find_package(yaml-cpp)
 find_package(brics_actuator)
+find_package(kdl_parser)
 find_package(Boost REQUIRED COMPONENTS thread date_time filesystem system regex)
 
 
@@ -42,6 +43,7 @@ add_executable(youbot_manipulation
     ament_index_cpp
     brics_actuator
     mir_interfaces
+    kdl_parser
     )
     target_link_libraries(youbot_manipulation 
       ${Boost_LIBRARIES}

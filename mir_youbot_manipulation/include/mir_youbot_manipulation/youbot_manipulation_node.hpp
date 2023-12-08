@@ -11,7 +11,10 @@
 #include "brics_actuator/msg/joint_positions.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "mir_interfaces/action/move_to_joint_angles.hpp"
+#include "mir_interfaces/action/cartesian_coordinates.hpp"
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include <kdl_parser/kdl_parser.hpp>
 
 
 class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
@@ -43,6 +46,9 @@ class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
 		// manipulator action server
 		rclcpp_action::Server<mir_interfaces::action::MoveToJointAngles>::SharedPtr joint_positions_action_server;
 
+		//cartesian pose action server
+		rclcpp_action::Server<mir_interfaces::action::CartesianCoordinates>::SharedPtr cartesian_pose_action_server;
+
 		// action server callbacks
 		rclcpp_action::GoalResponse manipulatorHandleCallback(
 			const rclcpp_action::GoalUUID& uuid,
@@ -56,9 +62,25 @@ class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
 			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
 			mir_interfaces::action::MoveToJointAngles>> goal_handle);
 
+		rclcpp_action::GoalResponse cartesianPoseHandleCallback(
+			const rclcpp_action::GoalUUID& uuid,
+			std::shared_ptr<const mir_interfaces::action::CartesianCoordinates::Goal> goal);
+
+		rclcpp_action::CancelResponse cartesianPoseSelectorCancelCallback(
+			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+			mir_interfaces::action::CartesianCoordinates>> goal_handle);
+
+		void cartesianPoseAcceptedCallback(
+			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+			mir_interfaces::action::CartesianCoordinates>> goal_handle);
+
 
 		// ============================ Methods ============================
 		void executeManipulator(
 			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
 			mir_interfaces::action::MoveToJointAngles>> goal_handle);
+
+		void executeCartesianPose(
+			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+			mir_interfaces::action::CartesianCoordinates>> goal_handle);
 };
