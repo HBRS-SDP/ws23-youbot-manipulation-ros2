@@ -20,6 +20,8 @@
 class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
 { 
 	public: 
+		
+
  		explicit ManipulatorRosNode(const rclcpp::NodeOptions& options); 
 
 		virtual ~ManipulatorRosNode();
@@ -40,6 +42,8 @@ class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
  		rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state);
 		
 	private:
+
+		KDL::Chain youbot_kdl_chain;
 		// ============================ Members ============================
 		std::shared_ptr<manipulation_namespace::Manipulator> youbot_manipulator;
 	

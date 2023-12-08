@@ -165,7 +165,8 @@ bool Manipulator::inverseKinematics(const KDL::Frame& target_pose, const KDL::Ch
     KDL::JntArray joint_angles_out(chain.getNrOfJoints());
     // Perform inverse kinematics
     int ik_result = ik_solver.CartToJnt(joint_angles, target_pose, joint_angles_out);
-    if (ik_result < 0) {
+    if (ik_result < 0) 
+    {
         std::cerr << "Inverse Kinematics failed. Result: " << ik_result << std::endl;
         return false;
     }
@@ -190,7 +191,8 @@ bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL
     joint_positions.data = joint_angles.data;
     // Calculate the forward kinematics
     int fk_result = fk_solver.JntToCart(joint_positions, target_pose);
-    if (fk_result < 0) {
+    if (fk_result < 0) 
+    {
         std::cerr << "Forward Kinematics failed. Result: " << fk_result << std::endl;
         return false;
     }
