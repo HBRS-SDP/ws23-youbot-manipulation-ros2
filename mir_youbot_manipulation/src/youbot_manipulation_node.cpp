@@ -28,6 +28,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Manipu
     auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver") + "/config";
     // manipulation_namespace::Manipulator manipulator(ethercat_path);
     youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
+    // youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
     KDL::Tree youbot_tree;
     KDL::Chain youbot_kdl_chain;
     
@@ -43,12 +44,12 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Manipu
         return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
     }
     KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
-    joint_angles.data.setZero();
-    joint_angles.data[0] = 3.21;
-    joint_angles.data[1] = 1.39;
-    joint_angles.data[2] = -2.37;
-    joint_angles.data[3] = 2.05;
-    joint_angles.data[4] = 1.39;
+    // joint_angles.data.setZero();
+    joint_angles.data[0] = 0;
+    joint_angles.data[1] = 0.7853;
+    joint_angles.data[2] = 1.5708;
+    joint_angles.data[3] = 1.5708;
+    joint_angles.data[4] = 0;
     KDL::Frame target_pose;
     youbot_manipulator -> forwardKinematics(joint_angles, youbot_kdl_chain, target_pose);
     youbot_manipulator -> inverseKinematics(target_pose, youbot_kdl_chain, joint_angles); 

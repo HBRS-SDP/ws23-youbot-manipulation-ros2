@@ -12,6 +12,15 @@ using namespace youbot;
 
 using namespace manipulation_namespace;
 
+// Manipulator::Manipulator()
+// {
+//     // EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
+//     // myArm.doJointCommutation();
+//     // myArm.calibrateManipulator();
+//     readYAML();
+    
+// }
+
 Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator", file_path)
 {
     EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
@@ -126,12 +135,12 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
         {
             std::cout << "Input joint " << i + 1 << " angle to the youbot : " << youbot_angles_set_point[i].angle.value() << std::endl;
         }
-        myArm.setJointData(youbot_angles_set_point);
+        // myArm.setJointData(youbot_angles_set_point);
         while (false)
         {
             sleep(3);
             vector<JointSensedAngle> youbot_sensed_angles;
-            myArm.getJointData(youbot_sensed_angles);
+            // myArm.getJointData(youbot_sensed_angles);
             for (int i = 0; i < youbot_angles_set_point.size(); i++)
             {
                 if (abs(youbot_sensed_angles[i].angle.value() - youbot_angles_set_point[i].angle.value()) <= 1e-4)
@@ -153,14 +162,13 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
 bool Manipulator::inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return) 
 {
     // Create FK and IK solvers
-    double eps = 1e-6;
-    int max_iter = 100;
+    // double eps = 1e-6;
     KDL::ChainFkSolverPos_recursive fk_solver(chain);
-    KDL::ChainIkSolverVel_pinv ik_solver_vel(chain, eps, max_iter);
-    KDL::ChainIkSolverPos_NR ik_solver(chain, fk_solver, ik_solver_vel, max_iter, eps);
+    KDL::ChainIkSolverVel_pinv ik_solver_vel(chain);
+    KDL::ChainIkSolverPos_LMA ik_solver(chain);
     // Set up joint angles
     KDL::JntArray joint_angles(chain.getNrOfJoints());
-    joint_angles.data.setZero();
+    // joint_angles.data.setZero();
     // Set up input and output
     KDL::JntArray joint_angles_out(chain.getNrOfJoints());
     // Perform inverse kinematics
@@ -197,7 +205,12 @@ bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL
         return false;
     }
     // Print the resulting target pose
-    std::cout << "Target Pose:\n" << target_pose << std::endl;
+    std::cout << "Position: " << target_pose.p.x() << " " << target_pose.p.y() << " " << target_pose.p.z() << std::endl;
+
+    double yaw, pitch, roll;
+    target_pose.M.GetRPY(roll, pitch, yaw);
+    std::cout << "Orientation: " << roll << " " << pitch << " " << yaw << std::endl;
+
     return true;
 }
 

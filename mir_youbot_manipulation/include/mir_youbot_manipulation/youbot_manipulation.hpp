@@ -19,6 +19,7 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
+#include "kdl/chainiksolverpos_lma.hpp"
 #include <kdl/tree.hpp>
 
 using namespace youbot;
@@ -27,6 +28,7 @@ namespace manipulation_namespace{
 	class Manipulator{
 		public:			
 			Manipulator(const std::string &file_path);
+			// Manipulator();
 			/**
 			  * \brief Moves youBot arm according to the input angles 
 			  * \param[in] joint_angles_deg in double as a list of angles in degrees
