@@ -135,12 +135,12 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
         {
             std::cout << "Input joint " << i + 1 << " angle to the youbot : " << youbot_angles_set_point[i].angle.value() << std::endl;
         }
-        // myArm.setJointData(youbot_angles_set_point);
+        myArm.setJointData(youbot_angles_set_point);
         while (false)
         {
             sleep(3);
             vector<JointSensedAngle> youbot_sensed_angles;
-            // myArm.getJointData(youbot_sensed_angles);
+            myArm.getJointData(youbot_sensed_angles);
             for (int i = 0; i < youbot_angles_set_point.size(); i++)
             {
                 if (abs(youbot_sensed_angles[i].angle.value() - youbot_angles_set_point[i].angle.value()) <= 1e-4)
