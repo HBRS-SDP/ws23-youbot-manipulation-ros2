@@ -17,10 +17,9 @@ def generate_launch_description():
 
     robot_name = 'youbot-brsu-2'
 
-    # planning_context
+    # Get path to the xacro file of the robot
     youbot_model_xacro = os.path.join(get_package_share_directory('mir_hardware_config'), robot_name, 'urdf','robot.urdf.xacro')
 
-    
     robot_description_config = Command([FindExecutable(name='xacro'),' ', youbot_model_xacro])
     robot_description = {'robot_description': ParameterValue(robot_description_config, value_type=str)}
 
