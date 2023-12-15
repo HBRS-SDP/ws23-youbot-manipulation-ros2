@@ -29,9 +29,9 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Manipu
 {
     RCLCPP_INFO(get_logger(), "Manipulator Node configured");
     auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver") + "/config";
-    // manipulation_namespace::Manipulator manipulator(ethercat_path);
-    // youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
-    youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
+    manipulation_namespace::Manipulator manipulator(ethercat_path);
+    youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
+    // youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
     
     
     std::string robot_description = this->get_parameter("robot_description").as_string();
@@ -45,22 +45,6 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Manipu
         RCLCPP_INFO(get_logger(), "Unable to get chain");
         return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
     }
-    // KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
-    // // joint_angles.data.setZero();
-    // joint_angles.data[0] = 0.174533;
-    // joint_angles.data[1] = 0.174533;
-    // joint_angles.data[2] = 0.174533;
-    // joint_angles.data[3] = 0.174533;
-    // joint_angles.data[4] = 0.174533;
-
-    // std::vector<JointAngleSetpoint> joint_positions;
-    // for (int i = 0; i <= joint_angles.rows(); i ++) {
-    //     joint_positions[i].angle = joint_angles.data[i] * radian;
-    // }
-    // youbot_manipulator -> moveArmJoints(joint_positions);
-    // KDL::Frame target_pose;
-    // youbot_manipulator -> forwardKinematics(joint_angles, youbot_kdl_chain, target_pose);
-    // youbot_manipulator -> inverseKinematics(target_pose, youbot_kdl_chain, joint_angles);
     
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 
@@ -201,6 +185,7 @@ void ManipulatorRosNode::cartesianPoseAcceptedCallback(const std::shared_ptr<rcl
     std::thread{std::bind(&ManipulatorRosNode::executeCartesianPose, this, std::placeholders::_1), goal_handle}.detach();
 }
 
+
 void ManipulatorRosNode::executeCartesianPose(const std::shared_ptr<rclcpp_action::ServerGoalHandle<mir_interfaces::action::CartesianCoordinates>> goal_handle)
 {
     RCLCPP_INFO(get_logger(), "Manipulator Node executing object selector goal");
@@ -224,7 +209,7 @@ void ManipulatorRosNode::executeCartesianPose(const std::shared_ptr<rclcpp_actio
     for (int i = 0; i < joint_angles.rows(); i++) 
     {
         JointAngleSetpoint joint_angle_setpoint;
-        joint_angle_setpoint.angle = (joint_angles(i) * 180.0 / M_PI) * radian;
+        joint_angle_setpoint.angle = (joint_angles(i) * 180.0 / M_PI) * radian; // Unit is incorrect need to change it
         joint_angles_setpoint.push_back(joint_angle_setpoint);
     }
 

@@ -12,23 +12,23 @@ using namespace youbot;
 
 using namespace manipulation_namespace;
 
-Manipulator::Manipulator()
-{
-    // EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
-    // myArm.doJointCommutation();
-    // myArm.calibrateManipulator();
-    readYAML();
-    
-}
-
-// Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator", file_path)
+// Manipulator::Manipulator()
 // {
-//     EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
-//     myArm.doJointCommutation();
-//     myArm.calibrateManipulator();
+//     // EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
+//     // myArm.doJointCommutation();
+//     // myArm.calibrateManipulator();
 //     readYAML();
     
 // }
+
+Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator", file_path)
+{
+    EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
+    myArm.doJointCommutation();
+    myArm.calibrateManipulator();
+    readYAML();
+    
+}
 
 void Manipulator::readYAML() 
 {
@@ -139,12 +139,12 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
         {
             std::cout << "Input joint " << i + 1 << " angle to the youbot : " << youbot_angles_set_point[i].angle.value() << std::endl;
         }
-        // myArm.setJointData(youbot_angles_set_point);
+        myArm.setJointData(youbot_angles_set_point);
         while (false)
         {
             sleep(3);
             vector<JointSensedAngle> youbot_sensed_angles;
-            // myArm.getJointData(youbot_sensed_angles);
+            myArm.getJointData(youbot_sensed_angles);
             for (int i = 0; i < youbot_angles_set_point.size(); i++)
             {
                 if (abs(youbot_sensed_angles[i].angle.value() - youbot_angles_set_point[i].angle.value()) <= 1e-4)
@@ -162,6 +162,15 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     return false;
 }
 
+
+KDL::Rotation euler_to_quaternion(double roll, double pitch, double yaw) {
+    double qx = sin(roll/2) * cos(pitch/2) * cos(yaw/2) - cos(roll/2) * sin(pitch/2) * sin(yaw/2);
+    double qy = cos(roll/2) * sin(pitch/2) * cos(yaw/2) + sin(roll/2) * cos(pitch/2) * sin(yaw/2);
+    double qz = cos(roll/2) * cos(pitch/2) * sin(yaw/2) - sin(roll/2) * sin(pitch/2) * cos(yaw/2);
+    double qw = cos(roll/2) * cos(pitch/2) * cos(yaw/2) + sin(roll/2) * sin(pitch/2) * sin(yaw/2);
+
+    return KDL::Rotation::Quaternion(qx, qy, qz, qw);
+}
 
 bool Manipulator::inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return) 
 {
@@ -214,6 +223,10 @@ bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL
     double yaw, pitch, roll;
     target_pose.M.GetRPY(roll, pitch, yaw);
     std::cout << "Orientation: " << roll << " " << pitch << " " << yaw << std::endl;
+
+    double qx, qy, qz, qw;
+    target_pose.M.GetQuaternion(qx, qy, qz, qw);
+    std::cout << "Quaternion: " << qx << " " << qy << " " << qz << " " << qw << std::endl;
 
     return true;
 }
