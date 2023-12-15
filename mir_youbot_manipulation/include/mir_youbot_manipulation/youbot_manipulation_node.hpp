@@ -15,7 +15,6 @@
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include <kdl_parser/kdl_parser.hpp>
-#include <boost/units/systems/angle/degrees.hpp>
 
 
 
@@ -56,15 +55,15 @@ class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
 		rclcpp_action::Server<mir_interfaces::action::CartesianCoordinates>::SharedPtr cartesian_pose_action_server;
 
 		// action server callbacks
-		rclcpp_action::GoalResponse manipulatorHandleCallback(
+		rclcpp_action::GoalResponse jointAnglesHandleCallback(
 			const rclcpp_action::GoalUUID& uuid,
 			std::shared_ptr<const mir_interfaces::action::MoveToJointAngles::Goal> goal);
 
-		rclcpp_action::CancelResponse manipulatorSelectorCancelCallback(
+		rclcpp_action::CancelResponse jointAnglesSelectorCancelCallback(
 			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
 			mir_interfaces::action::MoveToJointAngles>> goal_handle);
 
-		void manipulatorAcceptedCallback(
+		void jointAnglesAcceptedCallback(
 			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
 			mir_interfaces::action::MoveToJointAngles>> goal_handle);
 
@@ -82,7 +81,7 @@ class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
 
 
 		// ============================ Methods ============================
-		void executeManipulator(
+		void executeJointAngles(
 			const std::shared_ptr<rclcpp_action::ServerGoalHandle<
 			mir_interfaces::action::MoveToJointAngles>> goal_handle);
 

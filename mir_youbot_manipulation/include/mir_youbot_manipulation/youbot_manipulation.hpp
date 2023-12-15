@@ -12,7 +12,6 @@
 
 #include <ament_index_cpp/get_package_prefix.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
-#include <boost/units/systems/angle/degrees.hpp>
 #include "youbot_driver/youbot/EthercatMasterWithThread.hpp"
 #include "youbot_driver/youbot/YouBotManipulator.hpp"
 #include "youbot_driver/youbot/DataTrace.hpp"
