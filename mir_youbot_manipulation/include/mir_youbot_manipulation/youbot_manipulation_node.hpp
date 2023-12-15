@@ -15,6 +15,8 @@
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include <kdl_parser/kdl_parser.hpp>
+#include <boost/units/systems/angle/degrees.hpp>
+
 
 
 class ManipulatorRosNode: public rclcpp_lifecycle::LifecycleNode
