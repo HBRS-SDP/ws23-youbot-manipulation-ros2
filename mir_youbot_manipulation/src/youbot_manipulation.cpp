@@ -14,11 +14,7 @@ using namespace manipulation_namespace;
 
 Manipulator::Manipulator()
 {
-    // EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
-    // myArm.doJointCommutation();
-    // myArm.calibrateManipulator();
     readYAML();
-    
 }
 
 // Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator", file_path)
@@ -74,15 +70,6 @@ void Manipulator::readYAML()
     }
 }
 
-void Manipulator::convertDegToRad(const std::vector<JointAngleSetpoint> &joint_angles_deg, std::vector<JointAngleSetpoint> &joint_angles_rad) 
-{
-    for (int i = 0; i < joint_angles_deg.size(); i++)
-    {
-        JointAngleSetpoint joint_angle_rad;
-        joint_angle_rad.angle = (joint_angles_deg[i].angle.value() * M_PI / 180.0) * radian;
-        joint_angles_rad.push_back(joint_angle_rad);
-    }
-}
 
 bool Manipulator::validateInput(const std::vector<JointAngleSetpoint> &joint_angles_rad)
 {
@@ -125,8 +112,6 @@ vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(const 
 
 bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_rad)
 {
-    // vector<JointAngleSetpoint> joint_angles_rad;
-    // convertDegToRad(joint_angles_deg, joint_angles_rad);
     for (int i = 0; i < joint_angles_rad.size(); i++)
     {
         std::cout << "Input " << i + 1 << " angle to the youbot : " << joint_angles_rad[i].angle.value() << std::endl;
@@ -162,90 +147,56 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     return false;
 }
 
-
-KDL::Rotation euler_to_quaternion(double roll, double pitch, double yaw) {
+KDL::Rotation euler_to_quaternion(double roll, double pitch, double yaw) 
+{
     double qx = sin(roll/2) * cos(pitch/2) * cos(yaw/2) - cos(roll/2) * sin(pitch/2) * sin(yaw/2);
     double qy = cos(roll/2) * sin(pitch/2) * cos(yaw/2) + sin(roll/2) * cos(pitch/2) * sin(yaw/2);
     double qz = cos(roll/2) * cos(pitch/2) * sin(yaw/2) - sin(roll/2) * sin(pitch/2) * cos(yaw/2);
     double qw = cos(roll/2) * cos(pitch/2) * cos(yaw/2) + sin(roll/2) * sin(pitch/2) * sin(yaw/2);
-
     return KDL::Rotation::Quaternion(qx, qy, qz, qw);
 }
 
 bool Manipulator::inverseKinematics(const KDL::Frame& target_pose, const KDL::Chain& chain, KDL::JntArray& joint_angles_return) 
 {
-    // Create FK and IK solvers
-    // double eps = 1e-6;
     KDL::ChainFkSolverPos_recursive fk_solver(chain);
     KDL::ChainIkSolverVel_pinv ik_solver_vel(chain);
     KDL::ChainIkSolverPos_LMA ik_solver(chain);
-    // Set up joint angles
     KDL::JntArray joint_angles(chain.getNrOfJoints());
-    // joint_angles.data.setZero();
-    // Set up input and output
     KDL::JntArray joint_angles_out(chain.getNrOfJoints());
-    // Perform inverse kinematics
     int ik_result = ik_solver.CartToJnt(joint_angles, target_pose, joint_angles_out);
     if (ik_result < 0) 
     {
         std::cerr << "Inverse Kinematics failed. Result: " << ik_result << std::endl;
         return false;
     }
-    // Print resulting joint angles
     std::cout << "Joint angles (rad): " << joint_angles_out.data.transpose() << std::endl;
-    // Assign resulting joint angles to the output parameter
     joint_angles_return = joint_angles_out;
     return true;
 }
 
 bool Manipulator::forwardKinematics(const KDL::JntArray& joint_angles, const KDL::Chain& chain, KDL::Frame& target_pose) 
 {
-    // Check if the number of joint angles matches the chain's number of joints
     if (joint_angles.rows() != chain.getNrOfJoints()) {
         std::cerr << "Error: Number of joint angles does not match the chain's number of joints." << std::endl;
         return false;
     }
-    // Create a forward kinematics solver
     KDL::ChainFkSolverPos_recursive fk_solver(chain);
-    // Set up the input joint positions
     KDL::JntArray joint_positions(chain.getNrOfJoints());
     joint_positions.data = joint_angles.data;
-    // Calculate the forward kinematics
     int fk_result = fk_solver.JntToCart(joint_positions, target_pose);
     if (fk_result < 0) 
     {
         std::cerr << "Forward Kinematics failed. Result: " << fk_result << std::endl;
         return false;
     }
-    // Print the resulting target pose
     std::cout << "Position: " << target_pose.p.x() << " " << target_pose.p.y() << " " << target_pose.p.z() << std::endl;
-
     double yaw, pitch, roll;
     target_pose.M.GetRPY(roll, pitch, yaw);
     std::cout << "Orientation: " << roll << " " << pitch << " " << yaw << std::endl;
-
     double qx, qy, qz, qw;
     target_pose.M.GetQuaternion(qx, qy, qz, qw);
     std::cout << "Quaternion: " << qx << " " << qy << " " << qz << " " << qw << std::endl;
-
     return true;
 }
 
-// int main(int argc, char **argv)
-// {
-//     auto ethercat_path = ament_index_cpp::get_package_share_directory("youbot_driver");
-//     string file_path = ethercat_path + "/config";
-//     std::cout << file_path << std::endl;
-//     vector<double> input_angles;
-//     for (int i = 0; i < 5; i++)
-//     {
-//         double angle;
-//         std::cout << "Enter joint " << i + 1 << " angle : ";
-//         std::cin >> angle;
-//         input_angles.push_back(angle);
-//     }
-//     Manipulator myYouBotManipulator = Manipulator(file_path);
-//     vector<JointAngleSetpoint> joint_angles = myYouBotManipulator.convertDoubleToJointAngleSetpoint(input_angles);
-//     myYouBotManipulator.moveArmJoints(joint_angles);
-//     return 0;
-// }
+
