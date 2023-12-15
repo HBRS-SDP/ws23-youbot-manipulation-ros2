@@ -28,8 +28,8 @@ using namespace youbot;
 namespace manipulation_namespace{
 	class Manipulator{
 		public:			
-			Manipulator(const std::string &file_path);
-			// Manipulator();
+			// Manipulator(const std::string &file_path);
+			Manipulator();
 			/**
 			  * \brief Moves youBot arm according to the input angles 
 			  * \param[in] joint_angles_deg in double as a list of angles in degrees
@@ -64,7 +64,7 @@ namespace manipulation_namespace{
 			vector<JointAngleSetpoint> minimum_angles;
     		vector<JointAngleSetpoint> maximum_angles;
 			vector<JointAngleSetpoint> compensate_angles;
-			YouBotManipulator myArm;
+			// YouBotManipulator myArm;
 			std::string ethercat_path;
 
 
