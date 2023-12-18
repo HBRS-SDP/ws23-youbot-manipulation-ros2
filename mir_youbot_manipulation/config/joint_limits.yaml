@@ -1,4 +1,6 @@
 mir_youbot_manipulation:
+  - arm_configuration:
+        number_of_joints: 5
   - joint_limits:
       convention: youbot_store
       type: rad

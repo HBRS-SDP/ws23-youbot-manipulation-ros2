@@ -1,15 +1,13 @@
-
 /*
- * Copyright 2023 Bonn-Rhein-Sieg University
- *
- * ROS2 Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
- *
- */
+* Copyright 2023 Bonn-Rhein-Sieg University
+*
+* ROS2 Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
+*
+*/
 
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 
 using namespace youbot;
-
 using namespace manipulation_namespace;
 
 Manipulator::Manipulator()
@@ -37,6 +35,11 @@ void Manipulator::readYAML()
   {
     for (const auto &entry : node["mir_youbot_manipulation"])
     {
+      if (entry["arm_configuration"])
+      {
+        number_of_joints = entry["arm_configuration"]["number_of_joints"].as<int>();
+      }
+
       if (entry["joint_limits"])
       {
         for (const auto &joint : entry["joint_limits"]["joints"])
@@ -74,11 +77,13 @@ void Manipulator::readYAML()
 
 bool Manipulator::validateInput(const std::vector<JointAngleSetpoint> &joint_angles_rad)
 {
-  if (joint_angles_rad.size() != minimum_angles.size() ||
-      joint_angles_rad.size() != maximum_angles.size())
+  if (joint_angles_rad.size() != number_of_joints ||
+        minimum_angles.size() != number_of_joints ||
+        maximum_angles.size() != number_of_joints)
   {
     std::cout << "Error: Input vector size does not match expected size" << false;
   }
+
   for (int i = 0; i < joint_angles_rad.size(); i++)
   {
     if (joint_angles_rad[i].angle.value() < minimum_angles[i].angle.value() ||
@@ -106,13 +111,13 @@ void Manipulator::convertJointAnglesToYoubotDriverConvention(
 }
 
 void Manipulator::convertJointAnglesToYoubotStoreConvention(
-    const std::vector<JointAngleSetpoint> &joint_angles_rad,
+    const std::vector<JointSensedAngle> &joint_angles_rad,
     const std::vector<JointAngleSetpoint> &compensate_angles,
-    std::vector<JointAngleSetpoint> &youbot_angles_set_point)
+    std::vector<JointSensedAngle> &youbot_angles_set_point)
 {
   for (int i = 0; i < joint_angles_rad.size(); i++)
   {
-    JointAngleSetpoint youbot_store_joint_angle;
+    JointSensedAngle youbot_store_joint_angle;
     youbot_store_joint_angle.angle =
         (joint_angles_rad[i].angle.value() - compensate_angles[i].angle.value()) * radian;
     youbot_angles_set_point.push_back(youbot_store_joint_angle);
@@ -125,7 +130,7 @@ vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(
   vector<JointAngleSetpoint> youbot_angles_set_point;
   for (int i = 0; i < input_angle.size(); i++)
   {
-    JointAngleSetpoint youbot_angle_set_point;
+    JointSensedAngle youbot_angle_set_point;
     youbot_angle_set_point.angle = input_angle[i] * radian;
     youbot_angles_set_point.push_back(youbot_angle_set_point);
   }
@@ -157,6 +162,8 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
       sleep(3);
       vector<JointSensedAngle> youbot_sensed_angles;
       // myArm.getJointData(youbot_sensed_angles);
+      vector<JointSensedAngle> youbot_sensed_angles_set_point;
+
       convertJointAnglesToYoubotStoreConvention(youbot_sensed_angles, compensate_angles,
                                                 youbot_sensed_angles_set_point);
       for (int i = 0; i < youbot_angles_set_point.size(); i++)
@@ -177,25 +184,11 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
   return false;
 }
 
-KDL::Rotation euler_to_quaternion(double roll, double pitch, double yaw)
-{
-  double qx = sin(roll / 2) * cos(pitch / 2) * cos(yaw / 2) -
-              cos(roll / 2) * sin(pitch / 2) * sin(yaw / 2);
-  double qy = cos(roll / 2) * sin(pitch / 2) * cos(yaw / 2) +
-              sin(roll / 2) * cos(pitch / 2) * sin(yaw / 2);
-  double qz = cos(roll / 2) * cos(pitch / 2) * sin(yaw / 2) -
-              sin(roll / 2) * sin(pitch / 2) * cos(yaw / 2);
-  double qw = cos(roll / 2) * cos(pitch / 2) * cos(yaw / 2) +
-              sin(roll / 2) * sin(pitch / 2) * sin(yaw / 2);
-  return KDL::Rotation::Quaternion(qx, qy, qz, qw);
-}
-
 bool Manipulator::inverseKinematics(const KDL::Frame &target_pose,
                                     const KDL::Chain &chain,
                                     KDL::JntArray &joint_angles_return)
 {
   KDL::ChainFkSolverPos_recursive fk_solver(chain);
-  KDL::ChainIkSolverVel_pinv ik_solver_vel(chain);
   KDL::ChainIkSolverPos_LMA ik_solver(chain);
   KDL::JntArray joint_angles(chain.getNrOfJoints());
   KDL::JntArray joint_angles_out(chain.getNrOfJoints());
