@@ -17,14 +17,13 @@ using namespace manipulation_namespace;
 //   readYAML();
 // }
 
-Manipulator::Manipulator(const std::string &file_path):myArm("youbot-manipulator",
-file_path)
+Manipulator::Manipulator(const std::string &file_path)
+    : myArm("youbot-manipulator", file_path)
 {
-    EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
-    myArm.doJointCommutation();
-    myArm.calibrateManipulator();
-    readYAML();
-
+  EthercatMaster::getInstance("youbot-ethercat.cfg", file_path, true);
+  myArm.doJointCommutation();
+  myArm.calibrateManipulator();
+  readYAML();
 }
 
 void Manipulator::readYAML()
@@ -158,9 +157,8 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
 
       for (int i = 0; i < youbot_sensed_angles_set_point.size(); i++)
       {
-        std::cout << "Sensed joint " << i + 1
-                << " angle of the youbot : " << youbot_sensed_angles_set_point[i].angle.value()
-                << std::endl;
+        std::cout << "Sensed joint " << i + 1 << " angle of the youbot : "
+                  << youbot_sensed_angles_set_point[i].angle.value() << std::endl;
       }
       for (int i = 0; i < youbot_angles_set_point.size(); i++)
       {
@@ -178,19 +176,6 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     return false;
   }
   return true;
-}
-
-KDL::Rotation euler_to_quaternion(double roll, double pitch, double yaw)
-{
-  double qx = sin(roll / 2) * cos(pitch / 2) * cos(yaw / 2) -
-              cos(roll / 2) * sin(pitch / 2) * sin(yaw / 2);
-  double qy = cos(roll / 2) * sin(pitch / 2) * cos(yaw / 2) +
-              sin(roll / 2) * cos(pitch / 2) * sin(yaw / 2);
-  double qz = cos(roll / 2) * cos(pitch / 2) * sin(yaw / 2) -
-              sin(roll / 2) * sin(pitch / 2) * cos(yaw / 2);
-  double qw = cos(roll / 2) * cos(pitch / 2) * cos(yaw / 2) +
-              sin(roll / 2) * sin(pitch / 2) * sin(yaw / 2);
-  return KDL::Rotation::Quaternion(qx, qy, qz, qw);
 }
 
 bool Manipulator::inverseKinematics(const KDL::Frame &target_pose,
