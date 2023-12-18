@@ -21,6 +21,7 @@ find_package(mir_hardware_config REQUIRED)
 find_package(yaml-cpp)
 find_package(brics_actuator)
 find_package(kdl_parser)
+find_package(tf2_kdl REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread date_time filesystem system regex)
 
 
@@ -46,6 +47,7 @@ add_executable(youbot_manipulation
     mir_interfaces
     kdl_parser
     mir_hardware_config
+    tf2_kdl
     )
     target_link_libraries(youbot_manipulation 
       ${Boost_LIBRARIES}

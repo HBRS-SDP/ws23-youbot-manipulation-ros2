@@ -124,18 +124,18 @@ void Manipulator::convertJointAnglesToYoubotStoreConvention(
   }
 }
 
-vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(
-    const std::vector<double> &input_angle)
-{
-  vector<JointAngleSetpoint> youbot_angles_set_point;
-  for (int i = 0; i < input_angle.size(); i++)
-  {
-    JointSensedAngle youbot_angle_set_point;
-    youbot_angle_set_point.angle = input_angle[i] * radian;
-    youbot_angles_set_point.push_back(youbot_angle_set_point);
-  }
-  return youbot_angles_set_point;
-}
+// vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(
+//     const std::vector<double> &input_angle)
+// {
+//   vector<JointAngleSetpoint> youbot_angles_set_point;
+//   for (int i = 0; i < input_angle.size(); i++)
+//   {
+//     JointSensedAngle youbot_angle_set_point;
+//     youbot_angle_set_point.angle = input_angle[i] * radian;
+//     youbot_angles_set_point.push_back(youbot_angle_set_point);
+//   }
+//   return youbot_angles_set_point;
+// }
 
 bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_rad)
 {
@@ -150,22 +150,22 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     vector<JointAngleSetpoint> youbot_angles_set_point;
     convertJointAnglesToYoubotDriverConvention(joint_angles_rad, compensate_angles,
                                                youbot_angles_set_point);
-    for (int i = 0; i < youbot_angles_set_point.size(); i++)
-    {
-      std::cout << "Input joint " << i + 1
-                << " angle to the youbot : " << youbot_angles_set_point[i].angle.value()
-                << std::endl;
-    }
-    // myArm.setJointData(youbot_angles_set_point);
-    while (false)
+    myArm.setJointData(youbot_angles_set_point);
+    while (true)
     {
       sleep(3);
       vector<JointSensedAngle> youbot_sensed_angles;
       // myArm.getJointData(youbot_sensed_angles);
       vector<JointSensedAngle> youbot_sensed_angles_set_point;
-
       convertJointAnglesToYoubotStoreConvention(youbot_sensed_angles, compensate_angles,
                                                 youbot_sensed_angles_set_point);
+
+      for (int i = 0; i < youbot_sensed_angles_set_point.size(); i++)
+      {
+        std::cout << "Sensed joint " << i + 1
+                << " angle of the youbot : " << youbot_sensed_angles_set_point[i].angle.value()
+                << std::endl;
+      }
       for (int i = 0; i < youbot_angles_set_point.size(); i++)
       {
         if (abs(youbot_sensed_angles_set_point[i].angle.value() -
@@ -181,7 +181,7 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
   {
     return false;
   }
-  return false;
+  return true;
 }
 
 bool Manipulator::inverseKinematics(const KDL::Frame &target_pose,
