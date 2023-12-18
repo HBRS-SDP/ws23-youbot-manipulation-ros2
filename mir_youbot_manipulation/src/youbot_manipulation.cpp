@@ -105,6 +105,20 @@ void Manipulator::convertJointAnglesToYoubotDriverConvention(
   }
 }
 
+void Manipulator::convertJointAnglesToYoubotStoreConvention(
+    const std::vector<JointAngleSetpoint> &joint_angles_rad,
+    const std::vector<JointAngleSetpoint> &compensate_angles,
+    std::vector<JointAngleSetpoint> &youbot_angles_set_point)
+{
+  for (int i = 0; i < joint_angles_rad.size(); i++)
+  {
+    JointAngleSetpoint youbot_store_joint_angle;
+    youbot_store_joint_angle.angle =
+        (joint_angles_rad[i].angle.value() - compensate_angles[i].angle.value()) * radian;
+    youbot_angles_set_point.push_back(youbot_store_joint_angle);
+  }
+}
+
 vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(
     const std::vector<double> &input_angle)
 {
@@ -143,9 +157,11 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
       sleep(3);
       vector<JointSensedAngle> youbot_sensed_angles;
       // myArm.getJointData(youbot_sensed_angles);
+      convertJointAnglesToYoubotStoreConvention(youbot_sensed_angles, compensate_angles,
+                                                youbot_sensed_angles_set_point);
       for (int i = 0; i < youbot_angles_set_point.size(); i++)
       {
-        if (abs(youbot_sensed_angles[i].angle.value() -
+        if (abs(youbot_sensed_angles_set_point[i].angle.value() -
                 youbot_angles_set_point[i].angle.value()) <= 1e-4)
         {
           return false;

@@ -37,7 +37,7 @@ public:
    * \param[in] joint_angles_deg in double as a list of angles in degrees
    * \param[out] bool indicating the movement is done or not
    */
-  bool moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_deg);
+  bool moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_rad);
 
   /**
    * \brief Converts vector double values to joint angle set points data type
@@ -99,5 +99,16 @@ private:
       const std::vector<JointAngleSetpoint> &joint_angles_rad,
       const std::vector<JointAngleSetpoint> &compensate_angles,
       std::vector<JointAngleSetpoint> &youbot_angles_set_point);
-};
+  
+  /**
+   * \brief Subtracts compensation angles from the input angles
+   * \param[in] vector<double> as a list of angles in radian
+   * \param[in] vector<double> as a list of angles to compensate in radian
+   * \param[out] vector<JointAngleSetpoint>
+   */
+  void Manipulator::convertJointAnglesToYoubotStoreConvention(
+    const std::vector<JointAngleSetpoint> &joint_angles_rad,
+    const std::vector<JointAngleSetpoint> &compensate_angles,
+    std::vector<JointAngleSetpoint> &youbot_angles_set_point)
+};git 
 }  // namespace manipulation_namespace
