@@ -6,10 +6,11 @@
  */
 
 #include <kdl_parser/kdl_parser.hpp>
+#include <tf2_kdl/tf2_kdl.hpp>
 
 #include "brics_actuator/msg/joint_positions.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "mir_interfaces/action/cartesian_coordinates.hpp"
+#include "mir_interfaces/action/move_to_cartesian_pose.hpp"
 #include "mir_interfaces/action/move_to_joint_angles.hpp"
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -18,6 +19,9 @@
 
 class ManipulatorRosNode : public rclcpp_lifecycle::LifecycleNode
 {
+  const std::vector<std::string> expected_joint_names = {
+      "arm_joint_1", "arm_joint_2", "arm_joint_3", "arm_joint_4", "arm_joint_5"};
+
 public:
   explicit ManipulatorRosNode(const rclcpp::NodeOptions& options);
 
@@ -44,24 +48,25 @@ public:
       const rclcpp_lifecycle::State& state);
 
 private:
+  KDL::Tree youbot_tree;
   KDL::Chain youbot_kdl_chain;
   // ============================ Members ============================
   std::shared_ptr<manipulation_namespace::Manipulator> youbot_manipulator;
 
   // manipulator action server
   rclcpp_action::Server<mir_interfaces::action::MoveToJointAngles>::SharedPtr
-      joint_positions_action_server;
+      move_to_joint_angles;
 
   // cartesian pose action server
-  rclcpp_action::Server<mir_interfaces::action::CartesianCoordinates>::SharedPtr
-      cartesian_pose_action_server;
+  rclcpp_action::Server<mir_interfaces::action::MoveToCartesianPose>::SharedPtr
+      move_to_cartesian_pose;
 
   // action server callbacks
   rclcpp_action::GoalResponse jointAnglesHandleCallback(
       const rclcpp_action::GoalUUID& uuid,
       std::shared_ptr<const mir_interfaces::action::MoveToJointAngles::Goal> goal);
 
-  rclcpp_action::CancelResponse jointAnglesSelectorCancelCallback(
+  rclcpp_action::CancelResponse jointAnglesCancelCallback(
       const std::shared_ptr<
           rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToJointAngles>>
           goal_handle);
@@ -73,16 +78,16 @@ private:
 
   rclcpp_action::GoalResponse cartesianPoseHandleCallback(
       const rclcpp_action::GoalUUID& uuid,
-      std::shared_ptr<const mir_interfaces::action::CartesianCoordinates::Goal> goal);
+      std::shared_ptr<const mir_interfaces::action::MoveToCartesianPose::Goal> goal);
 
-  rclcpp_action::CancelResponse cartesianPoseSelectorCancelCallback(
+  rclcpp_action::CancelResponse cartesianPoseCancelCallback(
       const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<mir_interfaces::action::CartesianCoordinates>>
+          rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
           goal_handle);
 
   void cartesianPoseAcceptedCallback(
       const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<mir_interfaces::action::CartesianCoordinates>>
+          rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
           goal_handle);
 
   // ============================ Methods ============================
@@ -93,6 +98,6 @@ private:
 
   void executeCartesianPose(
       const std::shared_ptr<
-          rclcpp_action::ServerGoalHandle<mir_interfaces::action::CartesianCoordinates>>
+          rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
           goal_handle);
 };
