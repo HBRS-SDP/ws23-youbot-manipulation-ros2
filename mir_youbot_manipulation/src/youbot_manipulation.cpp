@@ -124,18 +124,18 @@ void Manipulator::convertJointAnglesToYoubotStoreConvention(
   }
 }
 
-// vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(
-//     const std::vector<double> &input_angle)
-// {
-//   vector<JointAngleSetpoint> youbot_angles_set_point;
-//   for (int i = 0; i < input_angle.size(); i++)
-//   {
-//     JointSensedAngle youbot_angle_set_point;
-//     youbot_angle_set_point.angle = input_angle[i] * radian;
-//     youbot_angles_set_point.push_back(youbot_angle_set_point);
-//   }
-//   return youbot_angles_set_point;
-// }
+vector<JointAngleSetpoint> Manipulator::convertDoubleToJointAngleSetpoint(
+    const std::vector<double> &input_angle)
+{
+  vector<JointAngleSetpoint> youbot_angles_set_point;
+  for (int i = 0; i < input_angle.size(); i++)
+  {
+    JointAngleSetpoint youbot_angle_set_point;
+    youbot_angle_set_point.angle = input_angle[i] * radian;
+    youbot_angles_set_point.push_back(youbot_angle_set_point);
+  }
+  return youbot_angles_set_point;
+}
 
 bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_angles_rad)
 {
@@ -150,7 +150,7 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
     vector<JointAngleSetpoint> youbot_angles_set_point;
     convertJointAnglesToYoubotDriverConvention(joint_angles_rad, compensate_angles,
                                                youbot_angles_set_point);
-    myArm.setJointData(youbot_angles_set_point);
+    // myArm.setJointData(youbot_angles_set_point);
     while (true)
     {
       sleep(3);
@@ -188,10 +188,12 @@ bool Manipulator::inverseKinematics(const KDL::Frame &target_pose,
                                     const KDL::Chain &chain,
                                     KDL::JntArray &joint_angles_return)
 {
-  KDL::ChainFkSolverPos_recursive fk_solver(chain);
-  KDL::ChainIkSolverPos_LMA ik_solver(chain);
+
   KDL::JntArray joint_angles(chain.getNrOfJoints());
   KDL::JntArray joint_angles_out(chain.getNrOfJoints());
+  KDL::ChainFkSolverPos_recursive fk_solver(chain);
+  KDL::ChainIkSolverPos_LMA ik_solver(chain);
+
   int ik_result = ik_solver.CartToJnt(joint_angles, target_pose, joint_angles_out);
   if (ik_result < 0)
   {

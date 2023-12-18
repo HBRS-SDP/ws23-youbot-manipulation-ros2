@@ -70,10 +70,7 @@ private:
   vector<JointAngleSetpoint> minimum_angles;
   vector<JointAngleSetpoint> maximum_angles;
   vector<JointAngleSetpoint> compensate_angles;
-  YouBotManipulator myArm;
-  // KDL::ChainFkSolverPos_recursive fk_solver;
-  // KDL::ChainIkSolverVel_pinv ik_solver_vel();
-  // KDL::ChainIkSolverPos_LMA ik_solver;
+  // YouBotManipulator myArm;
   std::string ethercat_path;
   int number_of_joints;
 
