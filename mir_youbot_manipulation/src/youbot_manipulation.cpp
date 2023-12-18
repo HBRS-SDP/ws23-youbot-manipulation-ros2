@@ -162,9 +162,8 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
 
       for (int i = 0; i < youbot_sensed_angles_set_point.size(); i++)
       {
-        std::cout << "Sensed joint " << i + 1
-                << " angle of the youbot : " << youbot_sensed_angles_set_point[i].angle.value()
-                << std::endl;
+        std::cout << "Sensed joint " << i + 1 << " angle of the youbot : "
+                  << youbot_sensed_angles_set_point[i].angle.value() << std::endl;
       }
       for (int i = 0; i < youbot_angles_set_point.size(); i++)
       {
