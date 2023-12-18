@@ -30,8 +30,8 @@ namespace manipulation_namespace
 class Manipulator
 {
 public:
-  // Manipulator(const std::string &file_path);
-  Manipulator();
+  Manipulator(const std::string &file_path);
+  // Manipulator();
   /**
    * \brief Moves youBot arm according to the input angles
    * \param[in] joint_angles_deg in double as a list of angles in degrees
@@ -69,7 +69,7 @@ private:
   vector<JointAngleSetpoint> minimum_angles;
   vector<JointAngleSetpoint> maximum_angles;
   vector<JointAngleSetpoint> compensate_angles;
-  // YouBotManipulator myArm;
+  YouBotManipulator myArm;
   std::string ethercat_path;
 
   void readYAML();
@@ -106,9 +106,9 @@ private:
    * \param[in] vector<double> as a list of angles to compensate in radian
    * \param[out] vector<JointAngleSetpoint>
    */
-  void Manipulator::convertJointAnglesToYoubotStoreConvention(
-    const std::vector<JointAngleSetpoint> &joint_angles_rad,
+  void convertJointAnglesToYoubotStoreConvention(
+    const std::vector<JointSensedAngle> &joint_angles_rad,
     const std::vector<JointAngleSetpoint> &compensate_angles,
-    std::vector<JointAngleSetpoint> &youbot_angles_set_point)
-};git 
+    std::vector<JointSensedAngle> &youbot_angles_set_point);
+};
 }  // namespace manipulation_namespace

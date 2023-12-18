@@ -34,9 +34,9 @@ ManipulatorRosNode::on_configure(const rclcpp_lifecycle::State&)
   auto ethercat_path =
       ament_index_cpp::get_package_share_directory("youbot_driver") + "/config";
   // manipulation_namespace::Manipulator manipulator(ethercat_path);
-  // youbot_manipulator =
-  // std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
-  youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
+  youbot_manipulator =
+  std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
+  // youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
   std::string robot_description = this->get_parameter("robot_description").as_string();
   if (!kdl_parser::treeFromString(robot_description, youbot_tree))
   {
