@@ -157,20 +157,20 @@ void ManipulatorRosNode::executeJointAngles(
     }
   }
 
-  std::vector<double> input_joint_angles;
+  vector<JointAngleSetpoint> joint_angle_setpoints;
   for (const auto& joint_position : joint_positions.positions)
   {
-    double value = joint_position.value;
+    JointAngleSetpoint value;
+    double input_angle = joint_position.value;
     if (joint_position.unit == "deg")
     {
-      value = value * M_PI / 180;
+      input_angle = input_angle * M_PI / 180;
     }
-    input_joint_angles.push_back(value);
+    value.angle = (input_angle)*radian;
+    joint_angle_setpoints.push_back(value);
   }
 
-  auto youbot_angles_set_point =
-      youbot_manipulator->convertDoubleToJointAngleSetpoint(input_joint_angles);
-  youbot_manipulator->moveArmJoints(youbot_angles_set_point);
+  youbot_manipulator->moveArmJoints(joint_angle_setpoints);
   auto result = std::make_shared<mir_interfaces::action::MoveToJointAngles::Result>();
   goal_handle->succeed(result);
 }
