@@ -233,3 +233,8 @@ bool Manipulator::forwardKinematics(const KDL::JntArray &joint_angles,
   std::cout << "Quaternion: " << qx << " " << qy << " " << qz << " " << qw << std::endl;
   return true;
 }
+
+double Manipulator::calculateVelocitySinusoidalProfile(double &amplitude, double &start_pose, double &target_pose, double &current_pose)
+{
+  return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
+}

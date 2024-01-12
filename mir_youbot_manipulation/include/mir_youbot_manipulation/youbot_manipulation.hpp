@@ -65,6 +65,18 @@ public:
    */
   bool forwardKinematics(const KDL::JntArray &joint_angles, const KDL::Chain &chain,
                          KDL::Frame &target_pose);
+  
+  /**
+   * \brief Calculates the next position in a sinusoidal motion.
+  *
+  * \param[in] amplitude Amplitude of the sinusoidal motion.
+  * \param[in] start_pose Starting position.
+  * \param[in] target_pose Target position.
+  * \param[in] current_pose Current position.
+  *
+  * \return Calculated position in the sinusoidal motion.
+  */
+  double calculateVelocitySinusoidalProfile(const double &amplitude, const double &start_pose, const double &target_pose, double &current_pose);
 
 private:
   vector<JointAngleSetpoint> minimum_angles;
