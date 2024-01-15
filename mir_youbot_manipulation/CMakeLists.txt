@@ -12,11 +12,16 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(mir_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(youbot_driver)
+find_package(mir_hardware_config REQUIRED)
 find_package(yaml-cpp)
 find_package(brics_actuator)
+find_package(kdl_parser)
+find_package(tf2_kdl REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread date_time filesystem system regex)
 
 
@@ -32,11 +37,17 @@ add_executable(youbot_manipulation
     
     ament_target_dependencies(youbot_manipulation 
     rclcpp
+    rclcpp_lifecycle
     std_msgs 
     geometry_msgs
     youbot_driver
+    rclcpp_action
     ament_index_cpp
     brics_actuator
+    mir_interfaces
+    kdl_parser
+    mir_hardware_config
+    tf2_kdl
     )
     target_link_libraries(youbot_manipulation 
       ${Boost_LIBRARIES}
@@ -56,7 +67,10 @@ install(
   DIRECTORY config/ 
   DESTINATION share/${PROJECT_NAME}/config
 )
-
+install(
+  DIRECTORY launch/ 
+  DESTINATION share/${PROJECT_NAME}/launch
+)
 install(
   TARGETS youbot_manipulation
 #   EXPORT ${PROJECT_NAME}
