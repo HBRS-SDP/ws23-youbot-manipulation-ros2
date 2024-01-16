@@ -16,6 +16,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include <kdl/chainiksolvervel_pinv.hpp>
+
 
 class ManipulatorRosNode : public rclcpp_lifecycle::LifecycleNode
 {

@@ -7,6 +7,7 @@
 
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 
+
 using namespace youbot;
 using namespace manipulation_namespace;
 
@@ -232,9 +233,4 @@ bool Manipulator::forwardKinematics(const KDL::JntArray &joint_angles,
   target_pose.M.GetQuaternion(qx, qy, qz, qw);
   std::cout << "Quaternion: " << qx << " " << qy << " " << qz << " " << qw << std::endl;
   return true;
-}
-
-double Manipulator::calculateVelocitySinusoidalProfile(double &amplitude, double &start_pose, double &target_pose, double &current_pose)
-{
-  return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
 }
