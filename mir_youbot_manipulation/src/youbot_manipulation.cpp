@@ -156,7 +156,7 @@ bool Manipulator::moveArmJoints(const std::vector<JointAngleSetpoint> &joint_ang
       sleep(3);
       vector<JointSensedAngle> youbot_sensed_angles;
       // myArm.getJointData(youbot_sensed_angles);
-      vector<JointSensedAngle> youbot_sensed_angles_set_point;
+      vector<JointSensedAngle> youbot_sensed_ngles_set_point;
       convertJointAnglesToYoubotStoreConvention(youbot_sensed_angles, compensate_angles,
                                                 youbot_sensed_angles_set_point);
 
@@ -232,4 +232,76 @@ bool Manipulator::forwardKinematics(const KDL::JntArray &joint_angles,
   target_pose.M.GetQuaternion(qx, qy, qz, qw);
   std::cout << "Quaternion: " << qx << " " << qy << " " << qz << " " << qw << std::endl;
   return true;
+}
+
+bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain, 
+                                        const KDL::Frame &target_pose, 
+                                        const double amplitude)
+{
+	// Initialize variables 
+	std::vector<JointSensedAngle> start_angles_setpoint;
+  std::vector<JointSensedAngle> current_angles_setpoint;
+	std::vector<JointAngleSetpoint> target_angles_setpoint;
+  std::vector<JointVelocitySetpoint> joint_velocities;
+
+	KDL::Frame start_pose;
+	KDL::Frame current_pose;	
+	KDL::ChainIkSolverVel_pinv solver(chain);
+	KDL::Twist desired_twist;
+	KDL::JntArray& target_angles;
+	KDL::JntArray& current_angles;
+  KDL::JntArray& start_angles;
+
+	myArm.getJointData(&start_angles_setpoint);
+	manipulator.inverseKinematics(&target_pose, &chain, &target_angles);
+
+  for (int i = 0; i < start_angles_setpoint; i++)
+  {
+    start_angles(i) = start_angles_setpoint[1].angle.values();
+  }
+	manipulator.forwardKinematics(&start_angles, &chain, &start_pose)
+	
+	for (int i = 0; i < target_angles.rows(); i++)
+	{
+		JointAngleSetpoint target_angle_setpoint;
+		target_angle_setpoint.angle = target_angles(i) * radian;
+		target_angles_setpoint.push_back(target_angle_setpoint);
+	}
+  
+	// loop to calculate 
+	while(true){
+										  
+		myArm.getJointData(&current_angles_setpoint);
+    for (int i = 0; i < current_angles_setpoint; i++)
+    {
+      current_angles(i) = current_angles_setpoint[1].angle.values();
+    }
+
+		manipulator.forwardKinematics(&current_angles, &chain, &current_pose)
+		
+		double velocity_x = calculateVelocity(amplitude, start_pose.p.x(),target_pose.p.x(), current_pose.p.x());
+		double velocity_y = calculateVelocity(amplitude, start_pose.p.y(),target_pose.p.y(), current_pose.p.y());
+		double velocity_z = calculateVelocity(amplitude, start_pose.p.z(),target_pose.p.z(), current_pose.p.z());
+		
+		desired_twist.vel.x(velocity_x);
+		desired_twist.vel.y(velocity_y);
+		desired_twist.vel.z(velocity_z);
+					
+		solver.CartToJnt(current_angles_setpoint, desired_twist, joint_velocities);
+		
+		std::cout << "Calculated Joint Velocities:" << std::endl;
+		for (int i = 0; i < joint_velocities.rows(); ++i)
+		{
+		  double velocity_deg_per_s = joint_velocities(i) * (180.0 / M_PI);
+		  std::cout << "Joint_" << i + 1 << ": " << velocity_deg_per_s << " deg/s"
+					<< std::endl;
+		}
+	
+		/* Validate joint velocity
+		if(true){
+			// Send data to youbot arm
+			myArm.setJointData(joint_velocities);
+		}*/
+	}
+	return 0;
 }
