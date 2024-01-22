@@ -236,7 +236,7 @@ bool Manipulator::forwardKinematics(const KDL::JntArray &joint_angles,
 double Manipulator::calculateVelocityProfile(const double &amplitude,
                                              const double &start_pose,
                                              const double &target_pose,
-                                             double &current_pose)
+                                             const double &current_pose)
 {
   return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
 
