@@ -69,6 +69,15 @@ ManipulatorRosNode::on_activate(const rclcpp_lifecycle::State& state)
                     std::placeholders::_1),
           std::bind(&ManipulatorRosNode::cartesianPoseAcceptedCallback, this,
                     std::placeholders::_1));
+  move_using_joint_velocities =
+      rclcpp_action::create_server<mir_interfaces::action::MoveUsingJointVelocities>(
+          shared_from_this(), "~/joint_velocities",
+          std::bind(&ManipulatorRosNode::jointVelocitiesHandleCallback, this,
+                    std::placeholders::_1, std::placeholders::_2),
+          std::bind(&ManipulatorRosNode::jointVelocitiesCancelCallback, this,
+                    std::placeholders::_1),
+          std::bind(&ManipulatorRosNode::jointVelocitiesAcceptedCallback, this,
+                    std::placeholders::_1));
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::
       SUCCESS;
@@ -89,6 +98,7 @@ ManipulatorRosNode::on_cleanup(const rclcpp_lifecycle::State&)
   RCLCPP_INFO(get_logger(), "Manipulator Node cleaned up");
   move_to_joint_angles.reset();
   move_to_cartesian_pose.reset();
+  move_using_joint_velocities.reset();
   youbot_manipulator.reset();
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::
       SUCCESS;
@@ -127,7 +137,7 @@ void ManipulatorRosNode::jointAnglesAcceptedCallback(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToJointAngles>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node accepted object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node accepted the goal");
   std::thread{
       std::bind(&ManipulatorRosNode::executeJointAngles, this, std::placeholders::_1),
       goal_handle}
@@ -139,7 +149,7 @@ void ManipulatorRosNode::executeJointAngles(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToJointAngles>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node executing object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node executing joint angles goal");
   const auto goal = goal_handle->get_goal();
   mir_interfaces::action::MoveToJointAngles::Goal moveArmJointsGoal;
   const auto& joint_positions = goal->joint_positions;
@@ -199,7 +209,7 @@ void ManipulatorRosNode::cartesianPoseAcceptedCallback(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node accepted object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node accepted the goal");
   std::thread{
       std::bind(&ManipulatorRosNode::executeCartesianPose, this, std::placeholders::_1),
       goal_handle}
@@ -211,7 +221,7 @@ void ManipulatorRosNode::executeCartesianPose(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node executing object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node executing cartesian position goal");
   const auto goal = goal_handle->get_goal();
   mir_interfaces::action::MoveToCartesianPose::Goal moveArmPoseGoal;
   const auto& cartesian_coordinates = goal->cartesian_coordinates;
@@ -234,16 +244,59 @@ void ManipulatorRosNode::executeCartesianPose(
   goal_handle->succeed(result);
 }
 
-
-double calculateVelocity(double amplitude, double start_pose, double target_pose, double current_pose)
+rclcpp_action::GoalResponse ManipulatorRosNode::jointVelocitiesHandleCallback(
+    const rclcpp_action::GoalUUID& uuid,
+    std::shared_ptr<const mir_interfaces::action::MoveUsingJointVelocities::Goal> goal)
 {
-    return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
+  RCLCPP_INFO(get_logger(), "Manipulator Node received joint velocities goal");
+  (void)uuid;
+  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse ManipulatorRosNode::jointVelocitiesCancelCallback(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveUsingJointVelocities>>
+        goal_handle)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node received request to cancel goal");
+  (void)goal_handle;
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void ManipulatorRosNode::jointVelocitiesAcceptedCallback(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveUsingJointVelocities>>
+        goal_handle)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node accepted the goal");
+  std::thread{
+      std::bind(&ManipulatorRosNode::executeJointVelocities, this, std::placeholders::_1),
+      goal_handle}
+      .detach();
+}
+void ManipulatorRosNode::executeJointVelocities(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveUsingJointVelocities>>
+        goal_handle)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node executing joint velocities goal");
+  const auto goal = goal_handle->get_goal();
+  mir_interfaces::action::MoveUsingJointVelocities::Goal moveArmJointVelocities;
+  const auto& cartesian_pose = goal->cartesian_pose;
+  KDL::Frame target_pose;
+  tf2::fromMsg(cartesian_coordinates.pose, target_pose);
+}
+
+double calculateVelocity(double amplitude, double start_pose, double target_pose,
+                         double current_pose)
+{
+  return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
 }
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node= std::make_shared<ManipulatorRosNode>(rclcpp::NodeOptions());
+  auto node = std::make_shared<ManipulatorRosNode>(rclcpp::NodeOptions());
   KDL::Tree youbot_tree;
   KDL::Chain youbot_kdl_chain;
   std::string robot_description = node->get_parameter("robot_description").as_string();
@@ -256,15 +309,14 @@ int main(int argc, char** argv)
     std::cout << "Unable to ger chain";
   }
   manipulation_namespace::Manipulator manipulator;
-    
+
   // Assuming joint_angles is a vector of joint angles in radians
   KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
-  joint_angles(0) = 0; // Set joint angles as needed
+  joint_angles(0) = 0;  // Set joint angles as needed
   joint_angles(1) = 0;
   joint_angles(2) = 0;
   joint_angles(3) = 0;
   joint_angles(4) = 0;
-
 
   KDL::Frame current_pose;
 
@@ -276,15 +328,18 @@ int main(int argc, char** argv)
 
     double amplitude = 0.01;
 
-    double velocity_x = calculateVelocity(amplitude, current_pose.p.x(), target_pose.p.x(), current_pose.p.x());
-    double velocity_y = calculateVelocity(amplitude, current_pose.p.y(), target_pose.p.y(), current_pose.p.y());
-    double velocity_z = calculateVelocity(amplitude, current_pose.p.z(), target_pose.p.z(), current_pose.p.z());
+    double velocity_x = calculateVelocity(amplitude, current_pose.p.x(),
+                                          target_pose.p.x(), current_pose.p.x());
+    double velocity_y = calculateVelocity(amplitude, current_pose.p.y(),
+                                          target_pose.p.y(), current_pose.p.y());
+    double velocity_z = calculateVelocity(amplitude, current_pose.p.z(),
+                                          target_pose.p.z(), current_pose.p.z());
 
     std::cout << "Calculated Velocities:" << std::endl;
     std::cout << "Velocity_x: " << velocity_x << std::endl;
     std::cout << "Velocity_y: " << velocity_y << std::endl;
     std::cout << "Velocity_z: " << velocity_z << std::endl;
-    
+
     KDL::ChainIkSolverVel_pinv solver(youbot_kdl_chain);
 
     // Input the desired end-effector velocities
@@ -301,14 +356,15 @@ int main(int argc, char** argv)
     for (int i = 0; i < joint_velocities.rows(); ++i)
     {
       double velocity_deg_per_s = joint_velocities(i) * (180.0 / M_PI);
-      std::cout << "Joint_" << i + 1 << ": " << velocity_deg_per_s << " deg/s" << std::endl;
+      std::cout << "Joint_" << i + 1 << ": " << velocity_deg_per_s << " deg/s"
+                << std::endl;
     }
   }
   else
   {
-      std::cerr << "Forward Kinematics failed." << std::endl;
+    std::cerr << "Forward Kinematics failed." << std::endl;
   }
-  
+
   rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
   return 0;

@@ -1,12 +1,11 @@
 /*
-* Copyright 2023 Bonn-Rhein-Sieg University
-*
-* ROS2 Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
-*
-*/
+ * Copyright 2023 Bonn-Rhein-Sieg University
+ *
+ * ROS2 Jay Parikh, Kamendu Panchal, Chaitanya Gumudala, Mohsen Azizmalayeri.
+ *
+ */
 
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
-
 
 using namespace youbot;
 using namespace manipulation_namespace;
@@ -79,8 +78,8 @@ void Manipulator::readYAML()
 bool Manipulator::validateInput(const std::vector<JointAngleSetpoint> &joint_angles_rad)
 {
   if (joint_angles_rad.size() != number_of_joints ||
-        minimum_angles.size() != number_of_joints ||
-        maximum_angles.size() != number_of_joints)
+      minimum_angles.size() != number_of_joints ||
+      maximum_angles.size() != number_of_joints)
   {
     std::cout << "Error: Input vector size does not match expected size" << false;
   }
@@ -188,7 +187,6 @@ bool Manipulator::inverseKinematics(const KDL::Frame &target_pose,
                                     const KDL::Chain &chain,
                                     KDL::JntArray &joint_angles_return)
 {
-
   KDL::JntArray joint_angles(chain.getNrOfJoints());
   KDL::JntArray joint_angles_out(chain.getNrOfJoints());
   KDL::ChainFkSolverPos_recursive fk_solver(chain);
@@ -233,4 +231,12 @@ bool Manipulator::forwardKinematics(const KDL::JntArray &joint_angles,
   target_pose.M.GetQuaternion(qx, qy, qz, qw);
   std::cout << "Quaternion: " << qx << " " << qy << " " << qz << " " << qw << std::endl;
   return true;
+}
+
+double Manipulator::calculateVelocityProfile(const double &amplitude,
+                                             const double &start_pose,
+                                             const double &target_pose,
+                                             double &current_pose)
+{
+  return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
 }

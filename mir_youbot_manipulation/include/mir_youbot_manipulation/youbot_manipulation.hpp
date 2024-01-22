@@ -29,8 +29,6 @@ namespace manipulation_namespace
 class Manipulator
 {
 public:
-
-  
   // Manipulator(const std::string &file_path);
   Manipulator();
   /**
@@ -65,18 +63,19 @@ public:
    */
   bool forwardKinematics(const KDL::JntArray &joint_angles, const KDL::Chain &chain,
                          KDL::Frame &target_pose);
-  
+
   /**
    * \brief Calculates the next position in a sinusoidal motion.
-  *
-  * \param[in] amplitude Amplitude of the sinusoidal motion.
-  * \param[in] start_pose Starting position.
-  * \param[in] target_pose Target position.
-  * \param[in] current_pose Current position.
-  *
-  * \return Calculated position in the sinusoidal motion.
-  */
-  double calculateVelocitySinusoidalProfile(const double &amplitude, const double &start_pose, const double &target_pose, double &current_pose);
+   *
+   * \param[in] amplitude Amplitude of the sinusoidal motion.
+   * \param[in] start_pose Starting position.
+   * \param[in] target_pose Target position.
+   * \param[in] current_pose Current position.
+   *
+   * \return Calculated position in the sinusoidal motion.
+   */
+  double calculateVelocityProfile(const double &amplitude, const double &start_pose,
+                                  const double &target_pose, double &current_pose);
 
 private:
   vector<JointAngleSetpoint> minimum_angles;
@@ -108,7 +107,7 @@ private:
       const std::vector<JointAngleSetpoint> &joint_angles_rad,
       const std::vector<JointAngleSetpoint> &compensate_angles,
       std::vector<JointAngleSetpoint> &youbot_angles_set_point);
-  
+
   /**
    * \brief Subtracts compensation angles from the input angles
    * \param[in] vector<double> as a list of angles in radian
@@ -116,8 +115,8 @@ private:
    * \param[out] vector<JointAngleSetpoint>
    */
   void convertJointAnglesToYoubotStoreConvention(
-    const std::vector<JointSensedAngle> &joint_angles_rad,
-    const std::vector<JointAngleSetpoint> &compensate_angles,
-    std::vector<JointSensedAngle> &youbot_angles_set_point);
+      const std::vector<JointSensedAngle> &joint_angles_rad,
+      const std::vector<JointAngleSetpoint> &compensate_angles,
+      std::vector<JointSensedAngle> &youbot_angles_set_point);
 };
 }  // namespace manipulation_namespace

@@ -5,6 +5,7 @@
  *
  */
 
+#include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 #include <tf2_kdl/tf2_kdl.hpp>
 
@@ -12,12 +13,11 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "mir_interfaces/action/move_to_cartesian_pose.hpp"
 #include "mir_interfaces/action/move_to_joint_angles.hpp"
+#include "mir_interfaces/action/move_using_joint_velocities.hpp"
 #include "mir_youbot_manipulation/youbot_manipulation.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include <kdl/chainiksolvervel_pinv.hpp>
-
 
 class ManipulatorRosNode : public rclcpp_lifecycle::LifecycleNode
 {
@@ -63,6 +63,9 @@ private:
   rclcpp_action::Server<mir_interfaces::action::MoveToCartesianPose>::SharedPtr
       move_to_cartesian_pose;
 
+  rclcpp_action::Server<mir_interfaces::action::MoveUsingJointVelocities>::SharedPtr
+      move_using_joint_velocities;
+
   // action server callbacks
   rclcpp_action::GoalResponse jointAnglesHandleCallback(
       const rclcpp_action::GoalUUID& uuid,
@@ -92,6 +95,20 @@ private:
           rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
           goal_handle);
 
+  rclcpp_action::GoalResponse jointVelocitiesHandleCallback(
+      const rclcpp_action::GoalUUID& uuid,
+      std::shared_ptr<const mir_interfaces::action::MoveUsingJointVelocities::Goal> goal);
+
+  rclcpp_action::CancelResponse jointVelocitiesCancelCallback(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+          mir_interfaces::action::MoveUsingJointVelocities>>
+          goal_handle);
+
+  void jointVelocitiesAcceptedCallback(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+          mir_interfaces::action::MoveUsingJointVelocities>>
+          goal_handle);
+
   // ============================ Methods ============================
   void executeJointAngles(
       const std::shared_ptr<
@@ -102,4 +119,7 @@ private:
       const std::shared_ptr<
           rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
           goal_handle);
+  void executeJointVelocities(const std::shared_ptr<rclcpp_action::ServerGoalHandle<
+                                  mir_interfaces::action::MoveUsingJointVelocities>>
+                                  goal_handle);
 };
