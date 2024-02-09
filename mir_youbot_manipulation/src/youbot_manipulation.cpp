@@ -238,6 +238,7 @@ double Manipulator::calculateVelocityProfile(const double &amplitude,
                                              const double &current_pose)
 {
   return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
+  // return amplitude * (target_pose - start_pose);
 }
 
 bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
@@ -256,7 +257,6 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
   KDL::Frame start_pose;
   KDL::Frame current_pose;
   KDL::ChainIkSolverVel_pinv solver(chain);
-  // KDL::ChainIkSolverVel_wdls solver(chain);
   KDL::Twist desired_twist;
   double velocity_x, velocity_y, velocity_z;
   KDL::JntArray start_angles(chain.getNrOfJoints());
@@ -274,30 +274,25 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
     start_angles(i) = youbot_store_start_angles[i].angle.value();
   }
   forwardKinematics(start_angles, chain, start_pose);
-
-  for (int i = 0; i < target_angles.rows(); i++)
-  {
-    std::cout << "Target angles : " << i + 1 << ":" << target_angles(i) << std::endl;
-  }
   std::cout << "Start pose : " << start_pose.p.x() << " " << start_pose.p.y() << " "
             << start_pose.p.z() << std::endl;
   std::cout << "Target pose : " << target_pose.p.x() << " " << target_pose.p.y() << " "
             << target_pose.p.z() << std::endl;
-  std::cout << "Difference X : " << target_pose.p.x() - start_pose.p.x() << std::endl;
-  std::cout << "Difference Y : " << target_pose.p.y() - start_pose.p.y() << std::endl;
-  std::cout << "Difference Z : " << target_pose.p.z() - start_pose.p.z() << std::endl;
-  while (target_pose.p.x() - start_pose.p.x() >= 0.01 ||
-         target_pose.p.y() - start_pose.p.y() >= 0.01 ||
-         target_pose.p.z() - start_pose.p.z() >= 0.01)
+  if (fabs(target_pose.p.x() - start_pose.p.x()) < 0.01 &&
+      fabs(target_pose.p.y() - start_pose.p.y()) < 0.01 &&
+      fabs(target_pose.p.z() - start_pose.p.z()) < 0.01)
+  {
+    return true;
+  }
+  bool target_reached = false;
+  while (true)
   {
     youbot_store_current_angles.clear();
-    youbot_driver_current_angles.clear();
+    joint_velocities_setpoint.clear();
     std::cout << "Loop started" << std::endl;
     myArm.getJointData(youbot_driver_current_angles);
-    std::cout << "Got current angles" << std::endl;
     convertJointAnglesToYoubotStoreConvention(
         youbot_driver_current_angles, compensate_angles, youbot_store_current_angles);
-    std::cout << "Converted current angles" << std::endl;
     std::cout << youbot_store_current_angles.size() << std::endl;
     for (int i = 0; i < youbot_store_current_angles.size(); i++)
     {
@@ -305,22 +300,34 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
                 << youbot_store_current_angles[i].angle.value() << std::endl;
       current_angles(i) = youbot_store_current_angles[i].angle.value();
     }
-    std::cout << "Converted current angles to KDL array" << std::endl;
+    std::cout << "Difference between target X and current X : "
+              << fabs(target_pose.p.x() - current_pose.p.x()) << std::endl;
+    std::cout << "Difference between target Y and current Y : "
+              << fabs(target_pose.p.y() - current_pose.p.y()) << std::endl;
+    std::cout << "Difference between target Z and current Z : "
+              << fabs(target_pose.p.z() - current_pose.p.z()) << std::endl;
     forwardKinematics(current_angles, chain, current_pose);
-    std::cout << "Got current pose" << std::endl;
-    desired_twist.vel.x(calculateVelocityProfile(amplitude, start_pose.p.x(),
-                                                 target_pose.p.x(), current_pose.p.x()));
-    desired_twist.vel.y(calculateVelocityProfile(amplitude, start_pose.p.y(),
-                                                 target_pose.p.y(), current_pose.p.y()));
-    desired_twist.vel.z(calculateVelocityProfile(amplitude, start_pose.p.z(),
-                                                 target_pose.p.z(), current_pose.p.z()));
-    std::cout << "Calculated velocity profile" << std::endl;
+    if (fabs(target_pose.p.x() - current_pose.p.x()) < 0.01 &&
+        fabs(target_pose.p.y() - current_pose.p.y()) < 0.01 &&
+        fabs(target_pose.p.z() - current_pose.p.z()) < 0.01)
+    {
+      desired_twist.vel.x(0);
+      desired_twist.vel.y(0);
+      desired_twist.vel.z(0);
+      std::cout << "Target pose reached" << std::endl;
+      target_reached = true;
+    }
+    else
+    {
+      desired_twist.vel.x(calculateVelocityProfile(
+          amplitude, start_pose.p.x(), target_pose.p.x(), current_pose.p.x()));
+      desired_twist.vel.y(calculateVelocityProfile(
+          amplitude, start_pose.p.y(), target_pose.p.y(), current_pose.p.y()));
+      desired_twist.vel.z(calculateVelocityProfile(
+          amplitude, start_pose.p.z(), target_pose.p.z(), current_pose.p.z()));
+    }
     std::cout << "Desired twist : " << desired_twist.vel.x() << " "
               << desired_twist.vel.y() << " " << desired_twist.vel.z() << std::endl;
-    for (int i = 0; i < current_angles.rows(); i++)
-    {
-      std::cout << "Current angles : " << i + 1 << ":" << current_angles(i) << std::endl;
-    }
     solver.CartToJnt(current_angles, desired_twist, joint_velocities);
     std::cout << "Calculated joint velocities" << std::endl;
     for (int i = 0; i < joint_velocities.rows(); i++)
@@ -331,8 +338,13 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
       double velocity_rad_per_s = joint_velocities(i);
       std::cout << "Joint " << i + 1 << " velocity : " << velocity_rad_per_s << std::endl;
     }
+    std::cout << "Sending joint velocities ....." << std::endl;
     myArm.setJointData(joint_velocities_setpoint);
-    sleep(1);
+    usleep(10000);
+    if (target_reached)
+    {
+      return true;
+    }
   }
-  return 0;
+  return true;
 }

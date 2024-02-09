@@ -290,7 +290,7 @@ void ManipulatorRosNode::executeJointVelocities(
   const auto& cartesian_pose = goal->cartesian_pose;
   KDL::Frame target_pose;
   tf2::fromMsg(cartesian_pose.pose, target_pose);
-  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.1);
+  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.5);
   auto result =
       std::make_shared<mir_interfaces::action::MoveUsingJointVelocities::Result>();
   goal_handle->succeed(result);
