@@ -25,10 +25,12 @@ ManipulatorRosNode::on_configure(const rclcpp_lifecycle::State&)
   RCLCPP_INFO(get_logger(), "Manipulator Node configured");
   auto ethercat_path =
       ament_index_cpp::get_package_share_directory("youbot_driver") + "/config";
+
   // manipulation_namespace::Manipulator manipulator(ethercat_path);
-  // youbot_manipulator =
-  //     std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
-  youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
+
+  youbot_manipulator =
+      std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
+  // youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
   std::string robot_description = this->get_parameter("robot_description").as_string();
   if (!kdl_parser::treeFromString(robot_description, youbot_tree))
   {
@@ -166,7 +168,8 @@ void ManipulatorRosNode::executeJointAngles(
       return;
     }
   }
-
+  KDL::Frame pose;
+  KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
   vector<JointAngleSetpoint> joint_angle_setpoints;
   for (const auto& joint_position : joint_positions.positions)
   {
@@ -179,8 +182,12 @@ void ManipulatorRosNode::executeJointAngles(
     value.angle = (input_angle)*radian;
     joint_angle_setpoints.push_back(value);
   }
-
+  for (int i = 0; i < joint_angle_setpoints.size(); i++)
+  {
+    joint_angles(i) = joint_angle_setpoints[i].angle.value();
+  }
   youbot_manipulator->moveArmJoints(joint_angle_setpoints);
+  youbot_manipulator->forwardKinematics(joint_angles, youbot_kdl_chain, pose);
   auto result = std::make_shared<mir_interfaces::action::MoveToJointAngles::Result>();
   goal_handle->succeed(result);
 }
@@ -231,14 +238,12 @@ void ManipulatorRosNode::executeCartesianPose(
   KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
   youbot_manipulator->inverseKinematics(target_pose, youbot_kdl_chain, joint_angles);
   std::vector<JointAngleSetpoint> joint_angles_setpoint;
-
   for (int i = 0; i < joint_angles.rows(); i++)
   {
     JointAngleSetpoint joint_angle_setpoint;
     joint_angle_setpoint.angle = joint_angles(i) * radian;
     joint_angles_setpoint.push_back(joint_angle_setpoint);
   }
-
   youbot_manipulator->moveArmJoints(joint_angles_setpoint);
   auto result = std::make_shared<mir_interfaces::action::MoveToCartesianPose::Result>();
   goal_handle->succeed(result);
@@ -285,8 +290,9 @@ void ManipulatorRosNode::executeJointVelocities(
   const auto& cartesian_pose = goal->cartesian_pose;
   KDL::Frame target_pose;
   tf2::fromMsg(cartesian_pose.pose, target_pose);
-  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.01);
-  auto result = std::make_shared<mir_interfaces::action::MoveToCartesianPose::Result>();
+  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.1);
+  auto result =
+      std::make_shared<mir_interfaces::action::MoveUsingJointVelocities::Result>();
   goal_handle->succeed(result);
 }
 

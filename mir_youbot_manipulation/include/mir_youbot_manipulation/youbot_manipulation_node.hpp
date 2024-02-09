@@ -5,7 +5,8 @@
  *
  */
 
-#include <kdl/chainiksolvervel_pinv.hpp>
+// #include <kdl/chainiksolverpos_wdls.hpp>
+#include <kdl/chainiksolvervel_wdls.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 #include <tf2_kdl/tf2_kdl.hpp>
 
