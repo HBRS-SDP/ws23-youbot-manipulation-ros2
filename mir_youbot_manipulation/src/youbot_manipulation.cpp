@@ -237,8 +237,6 @@ double Manipulator::calculateVelocityProfile(const double &amplitude,
                                              const double &target_pose,
                                              const double &current_pose)
 {
-  // return amplitude * std::sin((2 * M_PI / (target_pose - start_pose)) * current_pose);
-  // return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
   return amplitude * (target_pose - current_pose);  
   // if(target_pose/1.1 >= current_pose) // working good!!
   // {
@@ -289,9 +287,7 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
   }
   forwardKinematics(start_angles, chain, start_pose);
   current_pose = start_pose;
-  // bool add_velocity_offset = false;
 
-  // Loop until the target pose is reached
   while ((target_pose.p - current_pose.p).Norm() > 1e-02)
   {
     youbot_store_current_angles.clear();
@@ -303,10 +299,8 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
 
     std::cout << "Velocity x : " << velocity_x << " Velocity y : " << velocity_y
               << " Velocity z : " << velocity_z << std::endl;
-    // Set desired twist velocities
     if ((target_pose.p - current_pose.p).Norm() <= 1e-02)
     {
-        // If close, set desired twist to zero
         desired_twist.vel.x(0.0);
         desired_twist.vel.y(0.0);
         desired_twist.vel.z(0.0);
@@ -315,10 +309,8 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
     desired_twist.vel.y(velocity_y);
     desired_twist.vel.z(velocity_z);
 
-    // Calculate joint velocities using KDL solver
     solver.CartToJnt(current_angles, desired_twist, joint_velocities);
 
-    // Print joint velocities for debugging
     for (int i = 0; i < joint_velocities.rows(); i++)
     {
       JointVelocitySetpoint joint_velocity_setpoint;
@@ -328,7 +320,6 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
       std::cout << "Joint " << i + 1 << " velocity : " << velocity_rad_per_s << std::endl;
     }
 
-    // Send joint velocities to the robot
     myArm.setJointData(joint_velocities_setpoint);
 
     myArm.getJointData(youbot_driver_current_angles);
@@ -339,9 +330,7 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
     {
       current_angles(i) = youbot_store_current_angles[i].angle.value();
     }
-    // Update current pose
     forwardKinematics(current_angles, chain, current_pose);
-    // Introduce a small delay
     usleep(10000);
   }
   return true;
