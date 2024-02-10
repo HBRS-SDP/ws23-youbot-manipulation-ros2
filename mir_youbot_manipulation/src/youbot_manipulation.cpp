@@ -237,9 +237,22 @@ double Manipulator::calculateVelocityProfile(const double &amplitude,
                                              const double &target_pose,
                                              const double &current_pose)
 {
-  return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
-  // return amplitude * (target_pose - start_pose);
+  // return amplitude * std::sin((2 * M_PI / (target_pose - start_pose)) * current_pose);
+  // return amplitude * std::sin((M_PI / (target_pose - start_pose)) * current_pose);
+  return amplitude * (target_pose - current_pose);  
+  // if(target_pose/1.1 >= current_pose) // working good!!
+  // {
+  //   return amplitude * std::sin((M_PI * current_pose)/ (target_pose - start_pose));
+  // }
+  // else
+  // {
+  //   return 0.0;
+  // }
+  
 }
+
+
+
 
 bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
                                         const KDL::Frame &target_pose,
@@ -259,6 +272,7 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
   KDL::ChainIkSolverVel_pinv solver(chain);
   KDL::Twist desired_twist;
   double velocity_x, velocity_y, velocity_z;
+  double tolerance = 0.01;
   KDL::JntArray start_angles(chain.getNrOfJoints());
   KDL::JntArray current_angles(chain.getNrOfJoints());
   KDL::JntArray target_angles(chain.getNrOfJoints());
@@ -274,62 +288,37 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
     start_angles(i) = youbot_store_start_angles[i].angle.value();
   }
   forwardKinematics(start_angles, chain, start_pose);
-  std::cout << "Start pose : " << start_pose.p.x() << " " << start_pose.p.y() << " "
-            << start_pose.p.z() << std::endl;
-  std::cout << "Target pose : " << target_pose.p.x() << " " << target_pose.p.y() << " "
-            << target_pose.p.z() << std::endl;
-  if (fabs(target_pose.p.x() - start_pose.p.x()) < 0.01 &&
-      fabs(target_pose.p.y() - start_pose.p.y()) < 0.01 &&
-      fabs(target_pose.p.z() - start_pose.p.z()) < 0.01)
-  {
-    return true;
-  }
-  bool target_reached = false;
-  while (true)
+  current_pose = start_pose;
+  // bool add_velocity_offset = false;
+
+  // Loop until the target pose is reached
+  while ((target_pose.p - current_pose.p).Norm() > 1e-02)
   {
     youbot_store_current_angles.clear();
     joint_velocities_setpoint.clear();
-    std::cout << "Loop started" << std::endl;
-    myArm.getJointData(youbot_driver_current_angles);
-    convertJointAnglesToYoubotStoreConvention(
-        youbot_driver_current_angles, compensate_angles, youbot_store_current_angles);
-    std::cout << youbot_store_current_angles.size() << std::endl;
-    for (int i = 0; i < youbot_store_current_angles.size(); i++)
+    
+    velocity_x = calculateVelocityProfile(amplitude, start_pose.p.x(), target_pose.p.x(), current_pose.p.x());
+    velocity_y = calculateVelocityProfile(amplitude, start_pose.p.y(), target_pose.p.y(), current_pose.p.y());
+    velocity_z = calculateVelocityProfile(amplitude, start_pose.p.z(), target_pose.p.z(), current_pose.p.z());
+
+    std::cout << "Velocity x : " << velocity_x << " Velocity y : " << velocity_y
+              << " Velocity z : " << velocity_z << std::endl;
+    // Set desired twist velocities
+    if ((target_pose.p - current_pose.p).Norm() <= 1e-02)
     {
-      std::cout << "Current angles : " << i + 1 << ":"
-                << youbot_store_current_angles[i].angle.value() << std::endl;
-      current_angles(i) = youbot_store_current_angles[i].angle.value();
+        // If close, set desired twist to zero
+        desired_twist.vel.x(0.0);
+        desired_twist.vel.y(0.0);
+        desired_twist.vel.z(0.0);
     }
-    std::cout << "Difference between target X and current X : "
-              << fabs(target_pose.p.x() - current_pose.p.x()) << std::endl;
-    std::cout << "Difference between target Y and current Y : "
-              << fabs(target_pose.p.y() - current_pose.p.y()) << std::endl;
-    std::cout << "Difference between target Z and current Z : "
-              << fabs(target_pose.p.z() - current_pose.p.z()) << std::endl;
-    forwardKinematics(current_angles, chain, current_pose);
-    if (fabs(target_pose.p.x() - current_pose.p.x()) < 0.01 &&
-        fabs(target_pose.p.y() - current_pose.p.y()) < 0.01 &&
-        fabs(target_pose.p.z() - current_pose.p.z()) < 0.01)
-    {
-      desired_twist.vel.x(0);
-      desired_twist.vel.y(0);
-      desired_twist.vel.z(0);
-      std::cout << "Target pose reached" << std::endl;
-      target_reached = true;
-    }
-    else
-    {
-      desired_twist.vel.x(calculateVelocityProfile(
-          amplitude, start_pose.p.x(), target_pose.p.x(), current_pose.p.x()));
-      desired_twist.vel.y(calculateVelocityProfile(
-          amplitude, start_pose.p.y(), target_pose.p.y(), current_pose.p.y()));
-      desired_twist.vel.z(calculateVelocityProfile(
-          amplitude, start_pose.p.z(), target_pose.p.z(), current_pose.p.z()));
-    }
-    std::cout << "Desired twist : " << desired_twist.vel.x() << " "
-              << desired_twist.vel.y() << " " << desired_twist.vel.z() << std::endl;
+    desired_twist.vel.x(velocity_x);
+    desired_twist.vel.y(velocity_y);
+    desired_twist.vel.z(velocity_z);
+
+    // Calculate joint velocities using KDL solver
     solver.CartToJnt(current_angles, desired_twist, joint_velocities);
-    std::cout << "Calculated joint velocities" << std::endl;
+
+    // Print joint velocities for debugging
     for (int i = 0; i < joint_velocities.rows(); i++)
     {
       JointVelocitySetpoint joint_velocity_setpoint;
@@ -338,13 +327,22 @@ bool Manipulator::moveArmJointsVelocity(const KDL::Chain &chain,
       double velocity_rad_per_s = joint_velocities(i);
       std::cout << "Joint " << i + 1 << " velocity : " << velocity_rad_per_s << std::endl;
     }
-    std::cout << "Sending joint velocities ....." << std::endl;
+
+    // Send joint velocities to the robot
     myArm.setJointData(joint_velocities_setpoint);
-    usleep(10000);
-    if (target_reached)
+
+    myArm.getJointData(youbot_driver_current_angles);
+    convertJointAnglesToYoubotStoreConvention(
+        youbot_driver_current_angles, compensate_angles, youbot_store_current_angles);
+
+    for (int i = 0; i < youbot_store_current_angles.size(); i++)
     {
-      return true;
+      current_angles(i) = youbot_store_current_angles[i].angle.value();
     }
+    // Update current pose
+    forwardKinematics(current_angles, chain, current_pose);
+    // Introduce a small delay
+    usleep(10000);
   }
   return true;
 }

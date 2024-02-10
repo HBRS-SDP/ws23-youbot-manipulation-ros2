@@ -71,6 +71,7 @@ ManipulatorRosNode::on_activate(const rclcpp_lifecycle::State& state)
                     std::placeholders::_1),
           std::bind(&ManipulatorRosNode::cartesianPoseAcceptedCallback, this,
                     std::placeholders::_1));
+
   move_using_joint_velocities =
       rclcpp_action::create_server<mir_interfaces::action::MoveUsingJointVelocities>(
           shared_from_this(), "~/joint_velocities",
@@ -189,6 +190,7 @@ void ManipulatorRosNode::executeJointAngles(
   youbot_manipulator->moveArmJoints(joint_angle_setpoints);
   youbot_manipulator->forwardKinematics(joint_angles, youbot_kdl_chain, pose);
   auto result = std::make_shared<mir_interfaces::action::MoveToJointAngles::Result>();
+  result->joint_postions_reached = true;
   goal_handle->succeed(result);
 }
 
@@ -246,6 +248,7 @@ void ManipulatorRosNode::executeCartesianPose(
   }
   youbot_manipulator->moveArmJoints(joint_angles_setpoint);
   auto result = std::make_shared<mir_interfaces::action::MoveToCartesianPose::Result>();
+  result->cartesian_pose_reached = true;
   goal_handle->succeed(result);
 }
 
@@ -290,9 +293,10 @@ void ManipulatorRosNode::executeJointVelocities(
   const auto& cartesian_pose = goal->cartesian_pose;
   KDL::Frame target_pose;
   tf2::fromMsg(cartesian_pose.pose, target_pose);
-  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.5);
+  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.1);
   auto result =
       std::make_shared<mir_interfaces::action::MoveUsingJointVelocities::Result>();
+  result->cartesian_pose_reached = true;
   goal_handle->succeed(result);
 }
 
