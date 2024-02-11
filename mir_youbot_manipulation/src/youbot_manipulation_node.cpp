@@ -25,10 +25,12 @@ ManipulatorRosNode::on_configure(const rclcpp_lifecycle::State&)
   RCLCPP_INFO(get_logger(), "Manipulator Node configured");
   auto ethercat_path =
       ament_index_cpp::get_package_share_directory("youbot_driver") + "/config";
+
   // manipulation_namespace::Manipulator manipulator(ethercat_path);
-  // youbot_manipulator =
-  //     std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
-  youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
+
+  youbot_manipulator =
+      std::make_shared<manipulation_namespace::Manipulator>(ethercat_path);
+  // youbot_manipulator = std::make_shared<manipulation_namespace::Manipulator>();
   std::string robot_description = this->get_parameter("robot_description").as_string();
   if (!kdl_parser::treeFromString(robot_description, youbot_tree))
   {
@@ -70,6 +72,16 @@ ManipulatorRosNode::on_activate(const rclcpp_lifecycle::State& state)
           std::bind(&ManipulatorRosNode::cartesianPoseAcceptedCallback, this,
                     std::placeholders::_1));
 
+  move_using_joint_velocities =
+      rclcpp_action::create_server<mir_interfaces::action::MoveUsingJointVelocities>(
+          shared_from_this(), "~/joint_velocities",
+          std::bind(&ManipulatorRosNode::jointVelocitiesHandleCallback, this,
+                    std::placeholders::_1, std::placeholders::_2),
+          std::bind(&ManipulatorRosNode::jointVelocitiesCancelCallback, this,
+                    std::placeholders::_1),
+          std::bind(&ManipulatorRosNode::jointVelocitiesAcceptedCallback, this,
+                    std::placeholders::_1));
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::
       SUCCESS;
 }
@@ -89,6 +101,7 @@ ManipulatorRosNode::on_cleanup(const rclcpp_lifecycle::State&)
   RCLCPP_INFO(get_logger(), "Manipulator Node cleaned up");
   move_to_joint_angles.reset();
   move_to_cartesian_pose.reset();
+  move_using_joint_velocities.reset();
   youbot_manipulator.reset();
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::
       SUCCESS;
@@ -127,7 +140,7 @@ void ManipulatorRosNode::jointAnglesAcceptedCallback(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToJointAngles>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node accepted object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node accepted the goal");
   std::thread{
       std::bind(&ManipulatorRosNode::executeJointAngles, this, std::placeholders::_1),
       goal_handle}
@@ -139,7 +152,7 @@ void ManipulatorRosNode::executeJointAngles(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToJointAngles>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node executing object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node executing joint angles goal");
   const auto goal = goal_handle->get_goal();
   mir_interfaces::action::MoveToJointAngles::Goal moveArmJointsGoal;
   const auto& joint_positions = goal->joint_positions;
@@ -156,7 +169,8 @@ void ManipulatorRosNode::executeJointAngles(
       return;
     }
   }
-
+  KDL::Frame pose;
+  KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
   vector<JointAngleSetpoint> joint_angle_setpoints;
   for (const auto& joint_position : joint_positions.positions)
   {
@@ -169,9 +183,14 @@ void ManipulatorRosNode::executeJointAngles(
     value.angle = (input_angle)*radian;
     joint_angle_setpoints.push_back(value);
   }
-
+  for (int i = 0; i < joint_angle_setpoints.size(); i++)
+  {
+    joint_angles(i) = joint_angle_setpoints[i].angle.value();
+  }
   youbot_manipulator->moveArmJoints(joint_angle_setpoints);
+  youbot_manipulator->forwardKinematics(joint_angles, youbot_kdl_chain, pose);
   auto result = std::make_shared<mir_interfaces::action::MoveToJointAngles::Result>();
+  result->joint_postions_reached = true;
   goal_handle->succeed(result);
 }
 
@@ -199,7 +218,7 @@ void ManipulatorRosNode::cartesianPoseAcceptedCallback(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node accepted object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node accepted the goal");
   std::thread{
       std::bind(&ManipulatorRosNode::executeCartesianPose, this, std::placeholders::_1),
       goal_handle}
@@ -211,7 +230,7 @@ void ManipulatorRosNode::executeCartesianPose(
         rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveToCartesianPose>>
         goal_handle)
 {
-  RCLCPP_INFO(get_logger(), "Manipulator Node executing object selector goal");
+  RCLCPP_INFO(get_logger(), "Manipulator Node executing cartesian position goal");
   const auto goal = goal_handle->get_goal();
   mir_interfaces::action::MoveToCartesianPose::Goal moveArmPoseGoal;
   const auto& cartesian_coordinates = goal->cartesian_coordinates;
@@ -221,16 +240,63 @@ void ManipulatorRosNode::executeCartesianPose(
   KDL::JntArray joint_angles(youbot_kdl_chain.getNrOfJoints());
   youbot_manipulator->inverseKinematics(target_pose, youbot_kdl_chain, joint_angles);
   std::vector<JointAngleSetpoint> joint_angles_setpoint;
-
   for (int i = 0; i < joint_angles.rows(); i++)
   {
     JointAngleSetpoint joint_angle_setpoint;
     joint_angle_setpoint.angle = joint_angles(i) * radian;
     joint_angles_setpoint.push_back(joint_angle_setpoint);
   }
-
   youbot_manipulator->moveArmJoints(joint_angles_setpoint);
   auto result = std::make_shared<mir_interfaces::action::MoveToCartesianPose::Result>();
+  result->cartesian_pose_reached = true;
+  goal_handle->succeed(result);
+}
+
+rclcpp_action::GoalResponse ManipulatorRosNode::jointVelocitiesHandleCallback(
+    const rclcpp_action::GoalUUID& uuid,
+    std::shared_ptr<const mir_interfaces::action::MoveUsingJointVelocities::Goal> goal)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node received joint velocities goal");
+  (void)uuid;
+  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse ManipulatorRosNode::jointVelocitiesCancelCallback(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveUsingJointVelocities>>
+        goal_handle)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node received request to cancel goal");
+  (void)goal_handle;
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void ManipulatorRosNode::jointVelocitiesAcceptedCallback(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveUsingJointVelocities>>
+        goal_handle)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node accepted the goal");
+  std::thread{
+      std::bind(&ManipulatorRosNode::executeJointVelocities, this, std::placeholders::_1),
+      goal_handle}
+      .detach();
+}
+void ManipulatorRosNode::executeJointVelocities(
+    const std::shared_ptr<
+        rclcpp_action::ServerGoalHandle<mir_interfaces::action::MoveUsingJointVelocities>>
+        goal_handle)
+{
+  RCLCPP_INFO(get_logger(), "Manipulator Node executing joint velocities goal");
+  const auto goal = goal_handle->get_goal();
+  mir_interfaces::action::MoveUsingJointVelocities::Goal moveArmJointVelocities;
+  const auto& cartesian_pose = goal->cartesian_pose;
+  KDL::Frame target_pose;
+  tf2::fromMsg(cartesian_pose.pose, target_pose);
+  youbot_manipulator->moveArmJointsVelocity(youbot_kdl_chain, target_pose, 0.1);
+  auto result =
+      std::make_shared<mir_interfaces::action::MoveUsingJointVelocities::Result>();
+  result->cartesian_pose_reached = true;
   goal_handle->succeed(result);
 }
 
